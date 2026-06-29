@@ -1,0 +1,3556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%22 stop-color=%22%2300f5ff%22/><stop offset=%221%22 stop-color=%22%23ff00aa%22/></linearGradient></defs><path fill=%22url(%23g)%22 d=%22M32 2L6 12v18c0 16 11 28 26 32 15-4 26-16 26-32V12L32 2z%22/><path fill=%22%23020810%22 d=%22M28 42l-9-9 3.5-3.5L28 35l13.5-13.5L45 25z%22/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberSafe Guardian</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cyan: #00f5ff;
+    --magenta: #ff00aa;
+    --green: #00ff88;
+    --dark: #020810;
+    --darker: #010508;
+    --card-bg: rgba(0,20,40,0.85);
+    --glass: rgba(0,245,255,0.05);
+    --border-glow: rgba(0,245,255,0.3);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:var(--dark);
+    color:#c8e0f0;
+    overflow-x:hidden;
+  }
+
+  /* ─── CANVAS BACKGROUND ─── */
+  #bg-canvas{
+    position:fixed;top:0;left:0;width:100%;height:100%;
+    z-index:0;pointer-events:none;
+  }
+
+  /* ─── NAV ─── */
+  nav{
+    position:fixed;top:0;left:0;width:100%;z-index:1000;
+    background:rgba(2,8,16,0.92);
+    backdrop-filter:blur(20px);
+    border-bottom:1px solid var(--border-glow);
+    padding:0 2rem;
+    display:flex;align-items:center;justify-content:space-between;
+    height:64px;
+  }
+  .nav-logo{
+    font-family:'Orbitron',monospace;
+    font-size:1.2rem;font-weight:700;
+    background:linear-gradient(90deg,var(--cyan),var(--magenta));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    letter-spacing:2px;
+    display:flex;align-items:center;gap:10px;
+    white-space:nowrap;
+  }
+  .nav-logo .shield-icon{font-size:1.4rem;-webkit-text-fill-color:var(--cyan);}
+  .nav-links{display:flex;gap:0.2rem;align-items:center;}
+  .nav-links a{
+    color:#8ab0cc;text-decoration:none;
+    font-size:0.82rem;font-weight:500;
+    padding:8px 14px;border-radius:6px;
+    transition:all 0.3s;letter-spacing:0.5px;
+    font-family:'Inter',sans-serif;
+  }
+  .nav-links a:hover,.nav-links a.active{
+    color:var(--cyan);
+    background:rgba(0,245,255,0.08);
+  }
+  /* Hamburger toggle (mobile only) */
+  .nav-toggle{
+    display:none;
+    background:transparent;border:1px solid rgba(0,245,255,0.3);
+    width:42px;height:38px;border-radius:8px;
+    cursor:pointer;padding:0;
+    align-items:center;justify-content:center;
+    flex-direction:column;gap:5px;
+    transition:all 0.25s;
+  }
+  .nav-toggle:hover{border-color:var(--cyan);background:rgba(0,245,255,0.06);}
+  .nav-toggle span{
+    display:block;width:20px;height:2px;
+    background:var(--cyan);border-radius:2px;
+    transition:transform 0.3s,opacity 0.3s;
+  }
+  .nav-toggle.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+  .nav-toggle.open span:nth-child(2){opacity:0;}
+  .nav-toggle.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+  /* ─── PAGES ─── */
+  .page{
+    display:none;min-height:100vh;
+    position:relative;z-index:1;
+    padding-top:64px;
+  }
+  .page.active{display:block;}
+
+  /* ─── HERO ─── */
+  #home{
+    display:none;
+    background:radial-gradient(ellipse 80% 60% at 50% 20%,rgba(0,100,150,0.15) 0%,transparent 70%);
+  }
+  #home.active{display:block;}
+  .hero{
+    min-height:calc(100vh - 64px);
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    text-align:center;padding:4rem 2rem 2rem;
+    position:relative;
+  }
+  .hero-badge{
+    display:inline-flex;align-items:center;gap:8px;
+    background:rgba(0,245,255,0.08);
+    border:1px solid rgba(0,245,255,0.25);
+    border-radius:20px;padding:6px 18px;
+    font-size:0.78rem;color:var(--cyan);
+    letter-spacing:1px;text-transform:uppercase;
+    margin-bottom:2rem;font-family:'Share Tech Mono',monospace;
+  }
+  .pulse-dot{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--green);
+    animation:pulse-glow 2s infinite;
+  }
+  @keyframes pulse-glow{
+    0%,100%{box-shadow:0 0 0 0 rgba(0,255,136,0.7);}
+    50%{box-shadow:0 0 0 8px rgba(0,255,136,0);}
+  }
+  .hero h1{
+    font-family:'Orbitron',monospace;
+    font-size:clamp(2.5rem,6vw,5rem);
+    font-weight:900;line-height:1.1;
+    margin-bottom:1.5rem;
+  }
+  .hero h1 span{
+    background:linear-gradient(135deg,var(--cyan),var(--magenta));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .hero-sub{
+    font-size:1.1rem;color:#7a9bb5;max-width:600px;
+    line-height:1.7;margin-bottom:2.5rem;font-weight:300;
+  }
+  .hero-btns{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;}
+  .btn-primary{
+    background:linear-gradient(135deg,var(--cyan),#0088bb);
+    color:#000;font-weight:700;border:none;
+    padding:14px 32px;border-radius:8px;
+    font-size:0.95rem;cursor:pointer;
+    transition:all 0.3s;letter-spacing:0.5px;
+    font-family:'Inter',sans-serif;
+    box-shadow:0 0 30px rgba(0,245,255,0.3);
+  }
+  .btn-primary:hover{
+    transform:translateY(-2px);
+    box-shadow:0 0 50px rgba(0,245,255,0.5);
+  }
+  .btn-outline{
+    background:transparent;
+    color:var(--cyan);font-weight:600;
+    border:1px solid rgba(0,245,255,0.4);
+    padding:14px 32px;border-radius:8px;
+    font-size:0.95rem;cursor:pointer;
+    transition:all 0.3s;letter-spacing:0.5px;
+    font-family:'Inter',sans-serif;
+  }
+  .btn-outline:hover{
+    background:rgba(0,245,255,0.08);
+    border-color:var(--cyan);
+    transform:translateY(-2px);
+  }
+
+  /* ─── STATS ─── */
+  .stats-section{padding:5rem 2rem;}
+  .section-title{
+    font-family:'Orbitron',monospace;
+    font-size:1.8rem;font-weight:700;
+    text-align:center;margin-bottom:0.5rem;
+    color:#e0f0ff;
+  }
+  .section-sub{
+    text-align:center;color:#5a7a95;
+    margin-bottom:3rem;font-size:0.95rem;
+  }
+  .stats-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:1.5rem;max-width:1100px;margin:0 auto;
+  }
+  .stat-card{
+    background:var(--card-bg);
+    border:1px solid var(--border-glow);
+    border-radius:16px;padding:2rem;
+    position:relative;overflow:hidden;
+    transition:transform 0.3s,box-shadow 0.3s;
+    backdrop-filter:blur(20px);
+  }
+  .stat-card::before{
+    content:'';position:absolute;top:-1px;left:-1px;right:-1px;bottom:-1px;
+    border-radius:16px;
+    background:linear-gradient(135deg,rgba(0,245,255,0.15),transparent 60%);
+    z-index:-1;
+  }
+  .stat-card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 20px 60px rgba(0,245,255,0.15);
+  }
+  .stat-icon{font-size:2.5rem;margin-bottom:1rem;}
+  .stat-num{
+    font-family:'Orbitron',monospace;
+    font-size:2.4rem;font-weight:700;
+    color:var(--cyan);
+  }
+  .stat-label{color:#5a7a95;font-size:0.85rem;margin-top:0.3rem;letter-spacing:0.5px;}
+  .stat-desc{color:#7a9bb5;font-size:0.9rem;margin-top:0.8rem;line-height:1.5;}
+
+  /* ─── QUICK ACTIONS ─── */
+  .quick-section{padding:4rem 2rem;
+    background:linear-gradient(180deg,transparent,rgba(0,30,50,0.3),transparent);}
+  .action-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:1.2rem;max-width:1000px;margin:0 auto;
+  }
+  .action-card{
+    background:var(--card-bg);
+    border:1px solid rgba(0,245,255,0.15);
+    border-radius:12px;padding:1.5rem;
+    cursor:pointer;transition:all 0.3s;
+    display:flex;flex-direction:column;align-items:center;
+    text-align:center;gap:0.8rem;
+    backdrop-filter:blur(10px);
+  }
+  .action-card:hover{
+    border-color:var(--cyan);
+    background:rgba(0,245,255,0.07);
+    transform:scale(1.03);
+    box-shadow:0 0 30px rgba(0,245,255,0.1);
+  }
+  .action-icon{font-size:2rem;}
+  .action-title{font-weight:600;color:#c8e0f0;font-size:0.95rem;}
+  .action-desc{font-size:0.8rem;color:#5a7a95;}
+
+  /* ─── SECURITY TIPS BANNER ─── */
+  .tips-banner{
+    background:linear-gradient(90deg,rgba(0,245,255,0.08),rgba(255,0,170,0.05),rgba(0,245,255,0.08));
+    border-top:1px solid rgba(0,245,255,0.2);
+    border-bottom:1px solid rgba(0,245,255,0.2);
+    padding:1rem 0;overflow:hidden;white-space:nowrap;
+    margin:3rem 0;
+  }
+  .tips-track{
+    display:inline-flex;gap:4rem;
+    animation:scroll-tips 30s linear infinite;
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.85rem;color:var(--cyan);
+  }
+  @keyframes scroll-tips{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+  .tip-item{display:inline-flex;align-items:center;gap:8px;}
+  .tip-dot{color:var(--green);}
+
+  /* ─── SECURITY ANALYZER ─── */
+  #analyzer .tool-section{
+    max-width:900px;margin:3rem auto;padding:0 2rem;
+  }
+  .tool-card{
+    background:var(--card-bg);
+    border:1px solid var(--border-glow);
+    border-radius:20px;padding:2rem;
+    margin-bottom:2rem;
+    backdrop-filter:blur(20px);
+    transition:all 0.4s;
+  }
+  .tool-card:hover{box-shadow:0 0 40px rgba(0,245,255,0.08);}
+  .tool-header{
+    display:flex;align-items:center;gap:12px;
+    margin-bottom:1.5rem;
+  }
+  .tool-icon{
+    width:48px;height:48px;border-radius:12px;
+    background:linear-gradient(135deg,rgba(0,245,255,0.15),rgba(0,245,255,0.05));
+    border:1px solid rgba(0,245,255,0.3);
+    display:flex;align-items:center;justify-content:center;
+    font-size:1.4rem;
+  }
+  .tool-title{
+    font-family:'Orbitron',monospace;
+    font-size:1.1rem;font-weight:700;color:#e0f0ff;
+  }
+  .tool-subtitle{font-size:0.8rem;color:#5a7a95;margin-top:2px;}
+  .input-group{margin-bottom:1.2rem;position:relative;}
+  .cyber-input{
+    width:100%;
+    background:rgba(0,10,20,0.8);
+    border:1px solid rgba(0,245,255,0.2);
+    border-radius:10px;
+    padding:14px 18px;
+    color:#c8e0f0;
+    font-size:0.95rem;
+    font-family:'Share Tech Mono',monospace;
+    outline:none;
+    transition:all 0.3s;
+  }
+  .cyber-input:focus{
+    border-color:var(--cyan);
+    box-shadow:0 0 20px rgba(0,245,255,0.15);
+    background:rgba(0,15,30,0.9);
+  }
+  .cyber-input::placeholder{color:#2a4a6a;}
+  .cyber-input:focus::placeholder{color:#4a6a8a;}
+  .analyze-btn{
+    width:100%;background:linear-gradient(135deg,rgba(0,245,255,0.15),rgba(0,245,255,0.05));
+    border:1px solid rgba(0,245,255,0.4);
+    color:var(--cyan);padding:14px;border-radius:10px;
+    font-size:0.95rem;font-weight:600;cursor:pointer;
+    transition:all 0.3s;letter-spacing:1px;
+    font-family:'Orbitron',monospace;
+  }
+  .analyze-btn:hover{
+    background:linear-gradient(135deg,rgba(0,245,255,0.25),rgba(0,245,255,0.1));
+    box-shadow:0 0 30px rgba(0,245,255,0.2);
+    transform:translateY(-1px);
+  }
+  .output-box{
+    background:rgba(0,5,15,0.9);
+    border:1px solid rgba(0,245,255,0.15);
+    border-radius:12px;padding:1.5rem;
+    margin-top:1.2rem;
+    font-family:'Share Tech Mono',monospace;
+    font-size:0.88rem;
+    min-height:100px;
+    position:relative;
+    overflow:hidden;
+  }
+  .output-box::before{
+    content:'OUTPUT';position:absolute;top:8px;right:12px;
+    font-size:0.65rem;color:rgba(0,245,255,0.3);letter-spacing:2px;
+  }
+  .output-line{padding:4px 0;border-bottom:1px solid rgba(0,245,255,0.06);}
+  .output-line:last-child{border-bottom:none;}
+  .out-key{color:var(--cyan);}
+  .out-val{color:#c8e0f0;}
+  .strength-bar{
+    height:8px;border-radius:4px;
+    background:rgba(0,245,255,0.1);
+    margin-top:8px;overflow:hidden;
+  }
+  .strength-fill{
+    height:100%;border-radius:4px;
+    transition:width 0.8s cubic-bezier(0.4,0,0.2,1);
+  }
+  .s-weak{background:linear-gradient(90deg,#ff3344,#ff6644);}
+  .s-fair{background:linear-gradient(90deg,#ffaa00,#ffcc44);}
+  .s-good{background:linear-gradient(90deg,#00ccff,#00aaff);}
+  .s-strong{background:linear-gradient(90deg,#00ff88,#00cc66);}
+  .s-excellent{background:linear-gradient(90deg,#00f5ff,#00ff88);}
+  .risk-badge{
+    display:inline-block;padding:4px 14px;border-radius:20px;
+    font-size:0.78rem;font-weight:600;margin-top:8px;
+    letter-spacing:0.5px;
+  }
+  .risk-low{background:rgba(0,255,136,0.15);color:var(--green);border:1px solid rgba(0,255,136,0.3);}
+  .risk-medium{background:rgba(255,170,0,0.15);color:#ffaa00;border:1px solid rgba(255,170,0,0.3);}
+  .risk-high{background:rgba(255,51,68,0.15);color:#ff3344;border:1px solid rgba(255,51,68,0.3);}
+
+  /* ─── PASSWORD EYE TOGGLE ─── */
+  .pass-input-wrap{position:relative;}
+  .pass-input-wrap .cyber-input{padding-right:52px;}
+  .eye-btn{
+    position:absolute;right:14px;top:50%;transform:translateY(-50%);
+    background:none;border:none;cursor:pointer;
+    color:#3a6a8a;font-size:1.2rem;padding:4px;
+    transition:color 0.2s;line-height:1;
+  }
+  .eye-btn:hover{color:var(--cyan);}
+
+  /* FILE UPLOAD */
+  .file-drop{
+    border:2px dashed rgba(0,245,255,0.2);
+    border-radius:12px;padding:2.5rem;
+    text-align:center;cursor:pointer;
+    transition:all 0.3s;position:relative;
+  }
+  .file-drop:hover,.file-drop.drag-over{
+    border-color:var(--cyan);
+    background:rgba(0,245,255,0.04);
+  }
+  .file-drop input{
+    position:absolute;top:0;left:0;width:100%;height:100%;
+    opacity:0;cursor:pointer;
+  }
+  .file-drop-icon{font-size:2.5rem;margin-bottom:0.5rem;}
+  .file-drop-text{color:#5a7a95;font-size:0.9rem;}
+
+  /* ─── TOOLS PAGE / FLIP CARDS ─── */
+  #tools .tools-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:2rem;max-width:1200px;margin:0 auto;padding:3rem 2rem;
+  }
+  .flip-wrapper{height:280px;perspective:1200px;cursor:pointer;}
+  .flip-card{
+    width:100%;height:100%;position:relative;
+    transform-style:preserve-3d;
+    transition:transform 0.7s cubic-bezier(0.4,0,0.2,1);
+  }
+  .flip-wrapper:hover .flip-card{transform:rotateY(180deg);}
+  .flip-front,.flip-back{
+    position:absolute;top:0;left:0;width:100%;height:100%;
+    backface-visibility:hidden;border-radius:16px;
+    padding:1.8rem;
+    display:flex;flex-direction:column;justify-content:center;
+    backdrop-filter:blur(20px);
+  }
+  .flip-front{
+    background:var(--card-bg);
+    border:1px solid rgba(0,245,255,0.15);
+    align-items:center;text-align:center;
+  }
+  .flip-back{
+    background:linear-gradient(135deg,rgba(0,20,40,0.97),rgba(0,10,25,0.99));
+    border:1px solid rgba(0,245,255,0.3);
+    transform:rotateY(180deg);
+  }
+  .flip-tool-icon{font-size:3rem;margin-bottom:1rem;}
+  .flip-tool-name{
+    font-family:'Orbitron',monospace;
+    font-size:1.1rem;font-weight:700;color:#e0f0ff;
+    margin-bottom:0.5rem;
+  }
+  .flip-tool-category{
+    font-size:0.75rem;color:var(--cyan);
+    text-transform:uppercase;letter-spacing:1.5px;
+    background:rgba(0,245,255,0.1);
+    padding:3px 12px;border-radius:20px;
+    border:1px solid rgba(0,245,255,0.2);
+  }
+  .flip-hint{font-size:0.72rem;color:#3a6a8a;margin-top:1.5rem;}
+  .flip-back-title{
+    font-family:'Orbitron',monospace;
+    font-size:0.95rem;color:var(--cyan);margin-bottom:1rem;
+  }
+  .flip-uses{list-style:none;margin-bottom:1rem;}
+  .flip-uses li{
+    padding:5px 0;font-size:0.82rem;color:#8ab0cc;
+    display:flex;align-items:flex-start;gap:8px;
+  }
+  .flip-uses li::before{content:'▹';color:var(--cyan);flex-shrink:0;}
+  .flip-diff{display:flex;align-items:center;gap:8px;margin-top:auto;}
+  .diff-label{font-size:0.72rem;color:#4a7a9a;letter-spacing:1px;}
+  .diff-dots{display:flex;gap:4px;}
+  .diff-dot{
+    width:10px;height:10px;border-radius:50%;
+    background:rgba(0,245,255,0.15);
+    border:1px solid rgba(0,245,255,0.2);
+  }
+  .diff-dot.filled{background:var(--cyan);}
+
+  /* ─── EMERGENCY HELP ─── */
+  #emergency .emergency-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:1.5rem;max-width:1100px;margin:0 auto;padding:3rem 2rem;
+  }
+  .emergency-card{
+    background:var(--card-bg);
+    border:1px solid rgba(255,51,68,0.2);
+    border-radius:16px;padding:1.8rem;
+    cursor:pointer;transition:all 0.3s;
+    backdrop-filter:blur(15px);
+    position:relative;overflow:hidden;
+  }
+  .emergency-card::before{
+    content:'';position:absolute;top:0;left:0;
+    width:4px;height:100%;
+    background:linear-gradient(180deg,#ff3344,#ff6644);
+  }
+  .emergency-card:hover{
+    border-color:rgba(255,51,68,0.5);
+    transform:translateX(4px);
+    box-shadow:0 0 40px rgba(255,51,68,0.1);
+  }
+  .em-icon{font-size:2rem;margin-bottom:0.8rem;}
+  .em-title{
+    font-family:'Orbitron',monospace;
+    font-size:0.95rem;color:#ff6677;font-weight:600;
+    margin-bottom:0.5rem;
+  }
+  .em-desc{font-size:0.82rem;color:#5a7a95;line-height:1.5;}
+  .emergency-detail{
+    display:none;
+    background:rgba(10,2,5,0.98);
+    border:1px solid rgba(255,51,68,0.4);
+    border-radius:16px;padding:2rem;
+    max-width:700px;margin:0 auto 2rem;
+    backdrop-filter:blur(20px);
+  }
+  .emergency-detail.visible{display:block;}
+  .detail-section{margin-bottom:1.5rem;}
+  .detail-header{
+    font-family:'Orbitron',monospace;
+    font-size:0.85rem;color:#ff6677;
+    margin-bottom:0.8rem;display:flex;align-items:center;gap:8px;
+  }
+  .detail-steps{list-style:none;}
+  .detail-steps li{
+    padding:8px 0;font-size:0.88rem;color:#9ab8cc;
+    display:flex;gap:12px;align-items:flex-start;
+    border-bottom:1px solid rgba(255,51,68,0.06);
+  }
+  .detail-steps li:last-child{border-bottom:none;}
+  .step-num{
+    color:#ff6677;font-family:'Orbitron',monospace;
+    font-size:0.8rem;min-width:20px;font-weight:700;
+  }
+
+  /* ─── RESOURCES ─── */
+  #resources .resources-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:1.5rem;max-width:1100px;margin:0 auto;padding:3rem 2rem;
+  }
+  .resource-card{
+    background:var(--card-bg);
+    border:1px solid rgba(0,245,255,0.12);
+    border-radius:16px;padding:1.8rem;
+    transition:all 0.3s;backdrop-filter:blur(15px);
+    cursor:pointer;
+  }
+  .resource-card:hover{
+    border-color:rgba(0,245,255,0.35);
+    transform:translateY(-4px);
+    box-shadow:0 15px 50px rgba(0,245,255,0.1);
+  }
+  .res-tag{
+    display:inline-block;font-size:0.7rem;
+    padding:3px 10px;border-radius:20px;
+    background:rgba(0,255,136,0.1);
+    color:var(--green);
+    border:1px solid rgba(0,255,136,0.2);
+    margin-bottom:1rem;text-transform:uppercase;
+    letter-spacing:1px;font-family:'Share Tech Mono',monospace;
+  }
+  .res-title{font-weight:600;color:#e0f0ff;margin-bottom:0.5rem;}
+  .res-desc{font-size:0.82rem;color:#5a7a95;line-height:1.5;}
+  .res-arrow{
+    display:block;margin-top:1.2rem;
+    color:var(--cyan);font-size:1.2rem;
+    transition:transform 0.3s;
+  }
+  .resource-card:hover .res-arrow{transform:translateX(6px);}
+
+  /* ─── ABOUT ─── */
+  #about .about-content{
+    max-width:900px;margin:0 auto;padding:3rem 2rem;
+  }
+  .about-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:2rem;
+    margin-top:2rem;
+  }
+  .about-card{
+    background:var(--card-bg);
+    border:1px solid rgba(0,245,255,0.12);
+    border-radius:16px;padding:1.8rem;
+    backdrop-filter:blur(15px);
+  }
+  .about-card h3{
+    font-family:'Orbitron',monospace;
+    font-size:0.9rem;color:var(--cyan);
+    margin-bottom:1rem;letter-spacing:1px;
+  }
+  .about-card p{font-size:0.9rem;color:#7a9bb5;line-height:1.7;}
+  .tech-stack{display:flex;flex-wrap:wrap;gap:8px;margin-top:1rem;}
+  .tech-badge{
+    background:rgba(0,245,255,0.08);
+    border:1px solid rgba(0,245,255,0.2);
+    color:var(--cyan);
+    padding:5px 14px;border-radius:20px;
+    font-size:0.75rem;font-family:'Share Tech Mono',monospace;
+  }
+  .mission-text{
+    font-size:1.1rem;color:#8ab8cc;
+    line-height:1.8;border-left:3px solid var(--cyan);
+    padding-left:1.5rem;margin:2rem 0;
+  }
+
+  /* ─── CONTACT ─── */
+  #contact .contact-content{
+    max-width:780px;margin:0 auto;
+    padding:2rem 1.5rem 3rem;
+    width:100%;box-sizing:border-box;
+  }
+  .contact-form{
+    background:var(--card-bg);
+    border:1px solid var(--border-glow);
+    border-radius:20px;padding:2.5rem;
+    backdrop-filter:blur(20px);
+  }
+  .form-group{margin-bottom:1.2rem;}
+  .form-group label{
+    display:block;font-size:0.8rem;
+    color:var(--cyan);margin-bottom:6px;
+    letter-spacing:0.8px;text-transform:uppercase;
+    font-family:'Share Tech Mono',monospace;
+  }
+  textarea.cyber-input{height:120px;resize:vertical;font-family:'Inter',sans-serif;}
+  .form-status{
+    margin-top:1rem;padding:12px;border-radius:8px;
+    text-align:center;font-size:0.9rem;display:none;
+  }
+  .form-success{
+    background:rgba(0,255,136,0.1);
+    border:1px solid rgba(0,255,136,0.3);
+    color:var(--green);
+  }
+
+  /* ─── FOOTER ─── */
+  footer{
+    background:rgba(1,5,12,0.95);
+    border-top:1px solid rgba(0,245,255,0.1);
+    padding:3rem 2rem;text-align:center;
+    position:relative;z-index:1;
+  }
+  .footer-logo{
+    font-family:'Orbitron',monospace;
+    font-size:1.5rem;font-weight:700;
+    background:linear-gradient(90deg,var(--cyan),var(--magenta));
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    margin-bottom:0.5rem;
+  }
+  .footer-text{color:#4a6a8a;font-size:0.8rem;margin-bottom:1.5rem;}
+  .footer-contact-grid {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    max-width: 600px;
+    margin: 0 auto 1.5rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+  }
+  .footer-contact-item {
+    color: #8ab0cc;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.3s;
+  }
+  .footer-contact-item:hover {
+    color: var(--cyan);
+  }
+
+  /* ─── SCROLL REVEAL ─── */
+  .reveal{
+    opacity:0;transform:translateY(40px);
+    transition:opacity 0.7s,transform 0.7s;
+  }
+  .reveal.visible{opacity:1;transform:translateY(0);}
+  .reveal-left{
+    opacity:0;transform:translateX(-40px);
+    transition:opacity 0.7s,transform 0.7s;
+  }
+  .reveal-left.visible{opacity:1;transform:translateX(0);}
+
+  /* ─── PAGE HEADER ─── */
+  .page-header{
+    padding:3rem 2rem 1rem;text-align:center;
+  }
+  .page-header h1{
+    font-family:'Orbitron',monospace;
+    font-size:clamp(1.5rem,3vw,2.5rem);font-weight:700;
+    color:#e0f0ff;margin-bottom:0.5rem;
+  }
+  .page-header p{color:#4a6a8a;font-size:0.95rem;}
+  .cyber-line{
+    width:80px;height:2px;margin:1.5rem auto;
+    background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+  }
+
+  /* ─── SCANNING ANIMATION ─── */
+  @keyframes scan{
+    0%{top:0;} 100%{top:100%;}
+  }
+  .scanning-line{
+    position:absolute;left:0;width:100%;height:2px;
+    background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+    animation:scan 2s linear infinite;
+    pointer-events:none;
+    opacity:0.5;
+  }
+
+  /* ─── GLITCH EFFECT ─── */
+  @keyframes glitch{
+    0%,100%{clip-path:inset(0 0 95% 0);}
+    20%{clip-path:inset(33% 0 40% 0);}
+    40%{clip-path:inset(70% 0 20% 0);}
+    60%{clip-path:inset(5% 0 80% 0);}
+    80%{clip-path:inset(50% 0 50% 0);}
+  }
+
+  /* ─── DOWNLOAD FORMAT MODAL ─── */
+  #dl-modal-overlay{
+    position:fixed;inset:0;z-index:9999;
+    background:rgba(1,5,12,0.85);
+    backdrop-filter:blur(8px);
+    display:none;align-items:center;justify-content:center;
+  }
+  #dl-modal-overlay.open{display:flex;}
+  #dl-modal{
+    background:rgba(0,18,36,0.98);
+    border:1px solid rgba(0,245,255,0.3);
+    border-radius:20px;padding:2.2rem 2rem;
+    width:min(520px,92vw);
+    box-shadow:0 0 60px rgba(0,245,255,0.12);
+    animation:modal-in 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  @keyframes modal-in{from{opacity:0;transform:scale(0.92) translateY(20px);}to{opacity:1;transform:none;}}
+  .dl-modal-title{
+    font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;
+    color:#e0f0ff;margin-bottom:0.4rem;
+  }
+  .dl-modal-sub{font-size:0.8rem;color:#3a6a8a;font-family:'Share Tech Mono',monospace;margin-bottom:1.6rem;}
+  .dl-format-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;margin-bottom:1.5rem;}
+  .dl-format-btn{
+    display:flex;align-items:center;gap:12px;
+    background:rgba(0,245,255,0.04);
+    border:1px solid rgba(0,245,255,0.14);
+    border-radius:12px;padding:1rem 1.2rem;
+    cursor:pointer;transition:all 0.25s;text-align:left;
+  }
+  .dl-format-btn:hover{
+    border-color:var(--cyan);background:rgba(0,245,255,0.09);
+    transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,245,255,0.1);
+  }
+  .dl-fmt-icon{font-size:1.7rem;flex-shrink:0;}
+  .dl-fmt-name{font-family:'Orbitron',monospace;font-size:0.78rem;color:var(--cyan);letter-spacing:0.5px;}
+  .dl-fmt-desc{font-size:0.7rem;color:#3a6a8a;margin-top:2px;font-family:'Share Tech Mono',monospace;}
+  .dl-cancel-btn{
+    width:100%;background:none;border:1px solid rgba(255,51,68,0.2);
+    color:#5a7a95;padding:10px;border-radius:10px;
+    font-size:0.82rem;cursor:pointer;font-family:'Share Tech Mono',monospace;
+    letter-spacing:0.5px;transition:all 0.2s;
+  }
+  .dl-cancel-btn:hover{border-color:rgba(255,51,68,0.5);color:#ff6677;}
+
+  /* ════════════════════════════════════════════
+     RESPONSIVE — TABLET (≤1024px)
+  ════════════════════════════════════════════ */
+  @media(max-width:1024px){
+    nav{padding:0 1.2rem;}
+    .nav-links a{font-size:0.78rem;padding:7px 10px;}
+    .hero{padding:3rem 1.5rem 2rem;}
+    .stats-section,.quick-section{padding:3.5rem 1.5rem;}
+    #analyzer .tool-section{padding:0 1.5rem;margin:2rem auto;}
+    .tool-card{padding:1.6rem;}
+    .page-header{padding:2.5rem 1.5rem 1rem;}
+    #phishing > div[style*="max-width:1100px"]{padding:0 1.5rem 3rem !important;}
+  }
+
+  /* ════════════════════════════════════════════
+     RESPONSIVE — MOBILE (≤768px)
+  ════════════════════════════════════════════ */
+  @media(max-width:768px){
+    /* NAV — hamburger */
+    nav{padding:0 1rem;height:60px;}
+    .nav-logo{font-size:1rem;letter-spacing:1px;}
+    .nav-logo .shield-icon{font-size:1.2rem;}
+    .nav-toggle{display:flex;}
+    .nav-links{
+      position:fixed;top:60px;left:0;right:0;
+      flex-direction:column;align-items:stretch;
+      background:rgba(2,8,16,0.98);
+      backdrop-filter:blur(20px);
+      border-bottom:1px solid var(--border-glow);
+      padding:0.6rem 1rem;
+      gap:0.3rem;
+      transform:translateY(-130%);
+      transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);
+      max-height:calc(100vh - 60px);
+      overflow-y:auto;
+    }
+    .nav-links.open{transform:translateY(0);}
+    .nav-links a{
+      font-size:0.92rem;padding:12px 14px;
+      border-radius:8px;width:100%;
+    }
+    .page{padding-top:60px;}
+
+    /* HERO */
+    .hero{padding:2rem 1rem 1.5rem;min-height:calc(100vh - 60px);}
+    .hero-badge{font-size:0.66rem;padding:5px 12px;}
+    .hero h1{font-size:clamp(2rem,9vw,3rem);margin-bottom:1.2rem;}
+    .hero-sub{font-size:0.95rem;margin-bottom:2rem;}
+    .hero-btns{flex-direction:column;width:100%;max-width:320px;gap:0.75rem;}
+    .hero-btns button{width:100%;padding:13px 24px;}
+
+    /* SECTIONS */
+    .stats-section,.quick-section{padding:3rem 1rem;}
+    .section-title{font-size:1.4rem;}
+    .section-sub{font-size:0.85rem;margin-bottom:2rem;}
+    .stat-card{padding:1.4rem;}
+    .stat-num{font-size:1.9rem;}
+
+    /* PAGE HEADER */
+    .page-header{padding:2rem 1rem 0.5rem;}
+    .page-header p{font-size:0.85rem;}
+
+    /* ANALYZER */
+    #analyzer .tool-section{padding:0 1rem;margin:1.5rem auto;}
+    .tool-card{padding:1.3rem;border-radius:14px;}
+    .tool-header{flex-wrap:wrap;gap:0.7rem;}
+    .tool-icon{font-size:1.6rem;}
+    .tool-title{font-size:1rem;}
+    .tool-subtitle{font-size:0.75rem;}
+
+    /* PHISHING — force any 2-col inline grids to stack */
+    #phishing > div[style*="max-width:1100px"]{padding:0 1rem 2.5rem !important;}
+    #phishing div[style*="grid-template-columns:1fr 1fr"]{
+      grid-template-columns:1fr !important;
+    }
+
+    /* TOOLS / EMERGENCY / ABOUT */
+    .tools-grid,#tools .tools-grid{
+      grid-template-columns:1fr !important;
+      padding:0 1rem !important;gap:1rem !important;
+    }
+    .emergency-grid,#emergency .emergency-grid{
+      grid-template-columns:1fr !important;
+      padding:0 1rem !important;gap:1rem !important;
+    }
+    .about-content{padding:0 1rem !important;}
+    .about-grid{grid-template-columns:1fr !important;}
+    .about-card{padding:1.3rem !important;}
+    .mission-text{font-size:0.95rem !important;padding:0 0.3rem;}
+
+    /* CONTACT */
+    #contact .contact-content{padding:1.5rem 1rem 2.5rem;}
+    .contact-form{padding:1.4rem 1.1rem;border-radius:14px;}
+    .contact-form a[href^="mailto"]{
+      width:100% !important;max-width:100% !important;
+      padding:0.9rem 1rem !important;
+    }
+    .contact-form a[href^="mailto"] > div:last-child div:last-child{
+      font-size:0.8rem !important;
+      word-break:break-all !important;
+    }
+
+    /* INPUTS — prevent iOS zoom */
+    .cyber-input{font-size:16px !important;}
+
+    /* DOWNLOAD MODAL */
+    .dl-format-grid{grid-template-columns:1fr !important;}
+
+    /* FOOTER */
+    footer{padding:2rem 1rem;}
+    .footer-contact-grid{flex-direction:column;gap:0.6rem;align-items:center;}
+
+    /* TIPS BANNER */
+    .tips-track{font-size:0.78rem;gap:2.5rem;}
+  }
+
+  /* ════════════════════════════════════════════
+     RESPONSIVE — SMALL MOBILE (≤480px)
+  ════════════════════════════════════════════ */
+  @media(max-width:480px){
+    .nav-logo{font-size:0.88rem;}
+    .nav-logo .shield-icon{font-size:1.05rem;}
+    .hero h1{font-size:2rem;line-height:1.15;}
+    .hero-sub{font-size:0.88rem;}
+    .page-header h1{font-size:1.4rem !important;}
+    .section-title{font-size:1.2rem;}
+    .stat-card{padding:1.2rem;}
+    .stat-num{font-size:1.6rem;}
+    .tool-card{padding:1.1rem;}
+    .analyze-btn{font-size:0.8rem !important;padding:12px 18px !important;}
+    .contact-form{padding:1.2rem 0.9rem;}
+    /* avatar block on contact page */
+    #contact .contact-form > div:first-child > div:first-child{
+      width:60px !important;height:60px !important;font-size:1.3rem !important;
+    }
+  }
+
+  /* ════════════════════════════════════════════
+     CYBERSAFE ASSISTANT CHATBOT
+  ════════════════════════════════════════════ */
+  #csbot-trigger{position:fixed;bottom:28px;right:28px;z-index:9000;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#00f5ff,#0088bb);border:none;cursor:pointer;box-shadow:0 0 0 0 rgba(0,245,255,0.5);animation:csbot-pulse 2.5s infinite;display:flex;align-items:center;justify-content:center;transition:transform 0.2s;flex-shrink:0;}
+  #csbot-trigger:hover{transform:scale(1.1);}
+  #csbot-trigger svg{width:28px;height:28px;fill:#000;}
+  @keyframes csbot-pulse{0%{box-shadow:0 0 0 0 rgba(0,245,255,0.55);}70%{box-shadow:0 0 0 14px rgba(0,245,255,0);}100%{box-shadow:0 0 0 0 rgba(0,245,255,0);}}
+  #csbot-badge{position:absolute;top:-4px;right:-4px;background:#ff3344;color:#fff;font-size:0.65rem;font-weight:700;width:18px;height:18px;border-radius:50%;display:none;align-items:center;justify-content:center;font-family:'Orbitron',monospace;border:2px solid #020810;}
+  #csbot-window{position:fixed;bottom:100px;right:28px;z-index:8999;width:390px;max-height:590px;background:rgba(2,10,22,0.97);border:1px solid rgba(0,245,255,0.3);border-radius:20px;display:flex;flex-direction:column;box-shadow:0 20px 80px rgba(0,245,255,0.12);backdrop-filter:blur(24px);transform:scale(0.92) translateY(20px);opacity:0;pointer-events:none;transition:all 0.28s cubic-bezier(0.4,0,0.2,1);}
+  #csbot-window.csbot-open{transform:scale(1) translateY(0);opacity:1;pointer-events:all;}
+  #csbot-header{padding:14px 18px;background:linear-gradient(135deg,rgba(0,245,255,0.1),rgba(0,245,255,0.04));border-bottom:1px solid rgba(0,245,255,0.15);border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .csbot-header-left{display:flex;align-items:center;gap:10px;}
+  .csbot-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00f5ff,#ff00aa);display:flex;align-items:center;justify-content:center;font-size:1rem;border:2px solid rgba(0,245,255,0.4);flex-shrink:0;position:relative;}
+  .csbot-online-dot{position:absolute;bottom:1px;right:1px;width:9px;height:9px;background:#00ff88;border-radius:50%;border:2px solid #020810;animation:csbot-blink 2s infinite;}
+  @keyframes csbot-blink{0%,100%{opacity:1;}50%{opacity:0.4;}}
+  .csbot-name{font-family:'Orbitron',monospace;font-size:0.82rem;font-weight:700;color:#e0f0ff;letter-spacing:0.5px;}
+  .csbot-status{font-size:0.68rem;color:#00ff88;font-family:'Share Tech Mono',monospace;}
+  .csbot-header-btns{display:flex;gap:6px;}
+  .csbot-hbtn{background:none;border:1px solid rgba(0,245,255,0.15);color:#4a7a9a;width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:0.8rem;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+  .csbot-hbtn:hover{border-color:rgba(0,245,255,0.5);color:#00f5ff;}
+  #csbot-suggestions{padding:10px 14px 0;display:flex;flex-wrap:wrap;gap:6px;flex-shrink:0;}
+  .csbot-chip{background:rgba(0,245,255,0.06);border:1px solid rgba(0,245,255,0.18);color:#6ab0cc;font-size:0.68rem;padding:4px 10px;border-radius:20px;cursor:pointer;font-family:'Share Tech Mono',monospace;transition:all 0.2s;white-space:nowrap;}
+  .csbot-chip:hover{background:rgba(0,245,255,0.12);border-color:#00f5ff;color:#00f5ff;}
+  #csbot-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:0;}
+  #csbot-messages::-webkit-scrollbar{width:4px;}
+  #csbot-messages::-webkit-scrollbar-thumb{background:rgba(0,245,255,0.2);border-radius:4px;}
+  .csbot-msg{display:flex;flex-direction:column;max-width:88%;animation:csbot-fadein 0.25s ease;}
+  @keyframes csbot-fadein{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  .csbot-msg.csbot-user{align-self:flex-end;align-items:flex-end;}
+  .csbot-msg.csbot-bot{align-self:flex-start;align-items:flex-start;}
+  .csbot-bubble{padding:10px 14px;border-radius:14px;font-size:0.83rem;line-height:1.6;word-break:break-word;}
+  .csbot-msg.csbot-user .csbot-bubble{background:linear-gradient(135deg,rgba(0,245,255,0.18),rgba(0,245,255,0.08));border:1px solid rgba(0,245,255,0.25);color:#d0eeff;border-radius:14px 14px 4px 14px;}
+  .csbot-msg.csbot-bot .csbot-bubble{background:rgba(0,15,35,0.9);border:1px solid rgba(0,245,255,0.12);color:#b8d8ee;border-radius:14px 14px 14px 4px;}
+  .csbot-msg.csbot-bot .csbot-bubble b{color:#00f5ff;}
+  .csbot-timestamp{font-size:0.6rem;color:#2a4a6a;margin-top:3px;font-family:'Share Tech Mono',monospace;}
+  #csbot-typing{display:none;align-self:flex-start;padding:10px 14px;background:rgba(0,15,35,0.9);border:1px solid rgba(0,245,255,0.12);border-radius:14px 14px 14px 4px;}
+  .csbot-dot{display:inline-block;width:7px;height:7px;background:#00f5ff;border-radius:50%;margin:0 2px;opacity:0.4;animation:csbot-dotbounce 1.2s infinite;}
+  .csbot-dot:nth-child(2){animation-delay:0.2s;}
+  .csbot-dot:nth-child(3){animation-delay:0.4s;}
+  @keyframes csbot-dotbounce{0%,60%,100%{transform:translateY(0);opacity:0.4;}30%{transform:translateY(-5px);opacity:1;}}
+  #csbot-input-row{padding:12px 14px;border-top:1px solid rgba(0,245,255,0.1);display:flex;gap:8px;flex-shrink:0;border-radius:0 0 20px 20px;background:rgba(0,5,15,0.6);}
+  #csbot-input{flex:1;background:rgba(0,10,25,0.8);border:1px solid rgba(0,245,255,0.18);border-radius:10px;padding:10px 14px;color:#c8e0f0;font-size:0.84rem;font-family:'Inter',sans-serif;outline:none;transition:border-color 0.2s;resize:none;}
+  #csbot-input:focus{border-color:rgba(0,245,255,0.5);}
+  #csbot-input::placeholder{color:#2a4a6a;}
+  #csbot-send{background:linear-gradient(135deg,#00f5ff,#0088bb);border:none;border-radius:10px;width:40px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+  #csbot-send:hover{opacity:0.85;transform:scale(1.05);}
+  #csbot-send svg{width:18px;height:18px;fill:#000;}
+  @media(max-width:480px){
+    #csbot-window{width:calc(100vw - 16px);right:8px;bottom:86px;max-height:74vh;}
+    #csbot-trigger{bottom:18px;right:18px;width:52px;height:52px;}
+    #csbot-suggestions{display:none;}
+  }
+
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- ── DOWNLOAD FORMAT PICKER MODAL ── -->
+<div id="dl-modal-overlay" onclick="if(event.target===this)closeDlModal()">
+  <div id="dl-modal">
+    <div class="dl-modal-title">⬇ Choose Download Format</div>
+    <div class="dl-modal-sub">Select how you want to save your phishing analysis report</div>
+    <div class="dl-format-grid">
+      <button class="dl-format-btn" onclick="doDownload('txt')">
+        <span class="dl-fmt-icon">📄</span>
+        <div><div class="dl-fmt-name">TXT</div><div class="dl-fmt-desc">Plain text · Universal · Lightweight</div></div>
+      </button>
+      <button class="dl-format-btn" onclick="doDownload('pdf')">
+        <span class="dl-fmt-icon">📕</span>
+        <div><div class="dl-fmt-name">PDF</div><div class="dl-fmt-desc">Print-ready · Professional report</div></div>
+      </button>
+      <button class="dl-format-btn" onclick="doDownload('html')" style="grid-column:1/-1;">
+        <span class="dl-fmt-icon">🌐</span>
+        <div><div class="dl-fmt-name">HTML</div><div class="dl-fmt-desc">Styled dark report · Open in any browser</div></div>
+      </button>
+    </div>
+    <button class="dl-cancel-btn" onclick="closeDlModal()">✕ Cancel</button>
+  </div>
+</div>
+
+<nav>
+  <a href="#" onclick="showPage('home');return false;" style="text-decoration:none;cursor:pointer;" aria-label="Go to home">
+    <div class="nav-logo">
+      <span class="shield-icon">🛡️</span> CyberSafe Guardian
+    </div>
+  </a>
+  <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links" id="nav-links">
+    <a href="#" onclick="showPage('home')" class="active" id="nav-home">Home</a>
+    <a href="#" onclick="showPage('analyzer')" id="nav-analyzer">Analyzer</a>
+    <a href="#" onclick="showPage('phishing')" id="nav-phishing">Phishing</a>
+    <a href="#" onclick="showPage('tools')" id="nav-tools">Tools</a>
+    <a href="#" onclick="showPage('emergency')" id="nav-emergency">Emergency</a>
+    <a href="#" onclick="showPage('about')" id="nav-about">About</a>
+    <a href="#" onclick="showPage('contact')" id="nav-contact">Contact</a>
+  </div>
+</nav>
+
+<div id="home" class="page active">
+  <div class="hero">
+    <div class="hero-badge"><span class="pulse-dot"></span>SYSTEM ONLINE — THREAT MONITORING ACTIVE</div>
+    <h1>
+      Your Digital<br><span>Shield Against</span><br>Cyber Threats
+    </h1>
+    <p class="hero-sub">Advanced cybersecurity tools, threat analysis, and real-time protection guidance — all in one powerful platform. Stay one step ahead of attackers.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="showPage('analyzer')">⚡ Analyze Now</button>
+      <button class="btn-outline" onclick="showPage('tools')">🔧 Explore Tools</button>
+    </div>
+  </div>
+
+  <div class="stats-section">
+    <div class="section-title reveal">Threat Landscape 2025</div>
+    <div class="section-sub reveal">Real-world cybersecurity statistics you need to know</div>
+    <div class="stats-grid">
+      <div class="stat-card reveal" style="transition-delay:0.1s">
+        <div class="stat-icon">🔓</div>
+        <div class="stat-num" data-target="4100000000">0</div>
+        <div class="stat-label">PASSWORD BREACHES / YEAR</div>
+        <div class="stat-desc">Weak and reused passwords are exploited in over 80% of all data breaches worldwide.</div>
+      </div>
+      <div class="stat-card reveal" style="transition-delay:0.2s">
+        <div class="stat-icon">🎣</div>
+        <div class="stat-num" data-target="3400000000">0</div>
+        <div class="stat-label">PHISHING EMAILS DAILY</div>
+        <div class="stat-desc">Phishing attacks account for over 90% of successful cyberattacks on organizations.</div>
+      </div>
+      <div class="stat-card reveal" style="transition-delay:0.3s">
+        <div class="stat-icon">🦠</div>
+        <div class="stat-num" data-target="560000">0</div>
+        <div class="stat-label">NEW MALWARE DAILY</div>
+        <div class="stat-desc">Malware variants evolve faster than traditional signature-based AV can detect them.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="quick-section">
+    <div class="section-title reveal">Quick Actions</div>
+    <div class="section-sub reveal">Instant security checks at your fingertips</div>
+    <div class="action-grid">
+      <div class="action-card reveal" onclick="showPageSection('analyzer','section-password')" style="transition-delay:0.1s">
+        <div class="action-icon">🔑</div>
+        <div class="action-title">Password Checker</div>
+        <div class="action-desc">Analyze password strength & crack time</div>
+      </div>
+      <div class="action-card reveal" onclick="showPageSection('analyzer','section-url')" style="transition-delay:0.15s">
+        <div class="action-icon">🔗</div>
+        <div class="action-title">URL Checker</div>
+        <div class="action-desc">Detect phishing and malicious links</div>
+      </div>
+      <div class="action-card reveal" onclick="showPageSection('analyzer','section-file')" style="transition-delay:0.2s">
+        <div class="action-icon">📁</div>
+        <div class="action-title">File Checker</div>
+        <div class="action-desc">Scan file extensions for threats</div>
+      </div>
+      <div class="action-card reveal" onclick="showPage('emergency')" style="transition-delay:0.25s">
+        <div class="action-icon">🚨</div>
+        <div class="action-title">Emergency Help</div>
+        <div class="action-desc">Immediate response for active attacks</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tips-banner">
+    <div class="tips-track" id="tips-track">
+      <span class="tip-item"><span class="tip-dot">✦</span> Use 2FA on all accounts</span>
+      <span class="tip-item"><span class="tip-dot">✦</span> Never reuse passwords across sites</span>
+      <span class="tip-item"><span class="tip-dot">✦</span> Keep software updated</span>
+      <span class="tip-item"><span class="tip-dot">✦</span> Verify email senders before clicking links</span>
+      <span class="tip-item"><span class="tip-dot">✦</span> Use a VPN on public Wi-Fi</span>
+      <span class="tip-item"><span class="tip-dot">✦</span> Backup data using 3-2-1 rule</span>
+      <span class="tip-item"><span class="tip-dot">✦</span> Check URLs before entering credentials</span>
+      <span class="tip-item"><span class="tip-dot">✦</span> Use a password manager</span>
+      <span class="tip-item"><span class="tip-dot">✦</span> Use 2FA on all accounts</span>
+      <span class="tip-item"><span class="tip-dot">✦</span> Never reuse passwords across sites</span>
+      <span class="tip-item"><span class="tip-dot">✦</span> Keep software updated</span>
+      <span class="tip-item"><span class="tip-dot">✦</span> Verify email senders before clicking links</span>
+      <span class="tip-item"><span class="tip-dot">✦</span> Use a VPN on public Wi-Fi</span>
+      <span class="tip-item"><span class="tip-dot">✦</span> Backup data using 3-2-1 rule</span>
+      <span class="tip-item"><span class="tip-dot">✦</span> Check URLs before entering credentials</span>
+      <span class="tip-item"><span class="tip-dot">✦</span> Use a password manager</span>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-logo">CyberSafe Guardian</div>
+    <div style="margin:0.8rem 0 1.2rem;text-align:center;">
+      <a href="mailto:parmardarshan7544@gmail.com" style="display:inline-flex;align-items:center;gap:8px;color:var(--cyan);text-decoration:none;font-family:'Share Tech Mono',monospace;font-size:0.9rem;letter-spacing:0.5px;transition:opacity 0.2s;" onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">✉️ parmardarshan7544@gmail.com</a>
+    </div>
+    <p class="footer-text">© 2025 CyberSafe Guardian.All Rights Reserved.</p>
+  </footer>
+</div>
+
+<div id="analyzer" class="page">
+  <div class="page-header">
+    <h1>🔍 Security Analyzer</h1>
+    <p>Real-time threat detection and analysis tools</p>
+    <div class="cyber-line"></div>
+  </div>
+  <div class="tool-section">
+
+    <div class="tool-card reveal" id="section-password">
+      <div class="scanning-line"></div>
+      <div class="tool-header">
+        <div class="tool-icon">🔑</div>
+        <div>
+          <div class="tool-title">Password Strength Checker</div>
+          <div class="tool-subtitle">Analyze entropy, crack time, and security score</div>
+        </div>
+      </div>
+      <div class="input-group">
+        <div class="pass-input-wrap">
+          <input class="cyber-input" type="password" id="pass-input" placeholder="Enter password to analyze..." oninput="analyzePassword(this.value)" autocomplete="new-password">
+          <button class="eye-btn" id="eye-btn" onclick="togglePassView()" type="button" title="Show/Hide password">👁️</button>
+        </div>
+      </div>
+      <div class="output-box" id="pass-output">
+        <div style="color:#2a4a6a;font-size:0.85rem;">⬆ Enter a password above to see analysis...</div>
+      </div>
+    </div>
+
+    <div class="tool-card reveal" id="section-url">
+      <div class="tool-header">
+        <div class="tool-icon">🔗</div>
+        <div>
+          <div class="tool-title">URL Safety Checker</div>
+          <div class="tool-subtitle">Detect phishing, malware, and suspicious patterns</div>
+        </div>
+      </div>
+      <div class="input-group">
+        <input class="cyber-input" type="text" id="url-input" placeholder="https://example.com" oninput="if(!this.value.trim()){document.getElementById('url-output').innerHTML='<div style=\'color:#2a4a6a;font-size:0.85rem;\'>⬆ Enter a URL above to scan...</div>';}">
+      </div>
+      <button class="analyze-btn" onclick="checkURL(document.getElementById('url-input').value, true)">SCAN URL</button>
+      <div class="output-box" id="url-output" style="margin-top:1rem;">
+        <div style="color:#2a4a6a;font-size:0.85rem;">⬆ Enter a URL above to scan...</div>
+      </div>
+    </div>
+
+    <div class="tool-card reveal" id="section-file">
+      <div class="tool-header">
+        <div class="tool-icon">📁</div>
+        <div>
+          <div class="tool-title">File Safety Checker</div>
+          <div class="tool-subtitle">Analyze file extensions and metadata for threats</div>
+        </div>
+      </div>
+      <div class="file-drop" id="file-drop" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event)">
+        <input type="file" id="file-input" onchange="analyzeFile(this.files[0])">
+        <div class="file-drop-icon">📂</div>
+        <div class="file-drop-text">Drop a file here or <strong style="color:var(--cyan)">click to upload</strong></div>
+        <div style="font-size:0.75rem;color:#2a4a6a;margin-top:6px;">Files are analyzed locally — nothing is uploaded to any server</div>
+      </div>
+      <div style="text-align:right;margin-top:8px;">
+        <button onclick="clearFileChecker()" style="background:none;border:none;color:#3a6a8a;font-size:0.78rem;cursor:pointer;font-family:'Share Tech Mono',monospace;letter-spacing:0.5px;" title="Clear file result">✕ Clear</button>
+      </div>
+      <div class="output-box" id="file-output" style="margin-top:1rem;">
+        <div style="color:#2a4a6a;font-size:0.85rem;">⬆ Upload a file above to scan...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════ PHISHING EMAIL DETECTOR ══════════ -->
+<div id="phishing" class="page">
+  <div class="page-header">
+    <h1>🎣 Phishing Email Detector</h1>
+    <p>Paste any email content below for instant heuristic threat analysis</p>
+    <div class="cyber-line"></div>
+  </div>
+
+  <div style="max-width:1100px;margin:0 auto;padding:0 2rem 4rem;">
+
+    <!-- INPUT AREA -->
+    <div class="tool-card reveal" style="margin-bottom:1.5rem;">
+      <div class="scanning-line"></div>
+      <div class="tool-header">
+        <div class="tool-icon">📧</div>
+        <div>
+          <div class="tool-title">Email Content Scanner</div>
+          <div class="tool-subtitle">Paste the full email including headers, subject, and body</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+        <div>
+          <label style="display:block;font-size:0.75rem;color:var(--cyan);font-family:'Share Tech Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">From / Sender</label>
+          <input class="cyber-input" type="text" id="ph-sender" placeholder="sender@example.com or paste From: header">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.75rem;color:var(--cyan);font-family:'Share Tech Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Subject Line</label>
+          <input class="cyber-input" type="text" id="ph-subject" placeholder="Email subject line...">
+        </div>
+      </div>
+      <label style="display:block;font-size:0.75rem;color:var(--cyan);font-family:'Share Tech Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Email Body</label>
+      <textarea class="cyber-input" id="ph-body" rows="10" style="height:220px;resize:vertical;font-family:'Inter',sans-serif;font-size:0.88rem;line-height:1.6;" placeholder="Paste the full email body here…&#10;&#10;Example:&#10;Dear Customer,&#10;Your account has been suspended. Click here immediately to verify your identity: http://secure-login.xyz/verify&#10;Failure to act within 24 hours will result in permanent deletion.&#10;&#10;— Support Team"></textarea>
+
+      <!-- ── FILE ATTACHMENT ZONE ── -->
+      <div style="margin-top:1.2rem;">
+        <label style="display:block;font-size:0.75rem;color:var(--cyan);font-family:'Share Tech Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">📎 OR ATTACH EMAIL FILE <span style="color:#3a6a8a;text-transform:none;font-size:0.7rem;letter-spacing:0;">(PDF, .eml, .msg, .txt, .mht, .html — text extracted automatically)</span></label>
+        <div id="ph-file-drop" onclick="document.getElementById('ph-file-input').click()" ondragover="phFileDragOver(event)" ondragleave="phFileDragLeave(event)" ondrop="phFileDrop(event)"
+          style="border:2px dashed rgba(0,245,255,0.18);border-radius:12px;padding:1.4rem 1.5rem;text-align:center;cursor:pointer;transition:all 0.3s;background:rgba(0,10,25,0.5);position:relative;">
+          <input type="file" id="ph-file-input" accept=".pdf,.eml,.msg,.txt,.mht,.mhtml,.html,.htm" style="display:none;" onchange="phHandleFile(this.files[0])">
+          <div style="font-size:1.8rem;margin-bottom:0.4rem;">📂</div>
+          <div id="ph-file-label" style="font-size:0.88rem;color:#4a7a9a;font-family:'Share Tech Mono',monospace;">Drop email file here or <span style="color:var(--cyan);">click to browse</span></div>
+          <div style="font-size:0.72rem;color:#2a4a6a;margin-top:5px;">Supported: PDF · EML · MSG · TXT · HTML · MHT &nbsp;|&nbsp; Max 20 MB &nbsp;|&nbsp; Analyzed locally — never uploaded</div>
+        </div>
+        <!-- file preview bar -->
+        <div id="ph-file-bar" style="display:none;margin-top:10px;background:rgba(0,245,255,0.05);border:1px solid rgba(0,245,255,0.18);border-radius:10px;padding:10px 16px;display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span id="ph-file-icon" style="font-size:1.4rem;">📄</span>
+            <div>
+              <div id="ph-file-name" style="font-size:0.85rem;color:#c8e0f0;font-weight:600;"></div>
+              <div id="ph-file-meta" style="font-size:0.72rem;color:#3a6a8a;font-family:'Share Tech Mono',monospace;margin-top:2px;"></div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div id="ph-file-status" style="font-size:0.78rem;font-family:'Share Tech Mono',monospace;color:var(--green);"></div>
+            <button onclick="phClearFile()" style="background:rgba(255,51,68,0.1);border:1px solid rgba(255,51,68,0.25);color:#ff6677;padding:4px 12px;border-radius:6px;font-size:0.75rem;cursor:pointer;font-family:'Share Tech Mono',monospace;transition:all 0.2s;" onmouseover="this.style.background='rgba(255,51,68,0.2)'" onmouseout="this.style.background='rgba(255,51,68,0.1)'">✕ Remove</button>
+          </div>
+        </div>
+        <!-- extraction progress -->
+        <div id="ph-extract-progress" style="display:none;margin-top:10px;font-size:0.78rem;color:#4a7a9a;font-family:'Share Tech Mono',monospace;text-align:center;padding:8px;">
+          <span id="ph-extract-msg">⏳ Reading file…</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:1rem;margin-top:1rem;flex-wrap:wrap;">
+        <button class="analyze-btn" style="flex:1;min-width:180px;" onclick="runPhishingAnalysis()">🔍 ANALYZE EMAIL</button>
+        <button onclick="clearPhishing()" style="background:rgba(255,51,68,0.08);border:1px solid rgba(255,51,68,0.25);color:#ff6677;padding:14px 24px;border-radius:10px;font-size:0.85rem;cursor:pointer;font-family:'Orbitron',monospace;letter-spacing:1px;transition:all 0.3s;white-space:nowrap;" onmouseover="this.style.background='rgba(255,51,68,0.15)'" onmouseout="this.style.background='rgba(255,51,68,0.08)'">✕ CLEAR</button>
+        <button id="ph-download-btn" onclick="downloadPhishingReport()" style="display:none;background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.25);color:var(--green);padding:14px 24px;border-radius:10px;font-size:0.85rem;cursor:pointer;font-family:'Orbitron',monospace;letter-spacing:1px;transition:all 0.3s;white-space:nowrap;" onmouseover="this.style.background='rgba(0,255,136,0.15)'" onmouseout="this.style.background='rgba(0,255,136,0.08)'">⬇ DOWNLOAD REPORT</button>
+      </div>
+    </div>
+
+    <!-- RESULTS (hidden until analysis runs) -->
+    <div id="ph-results" style="display:none;">
+
+      <!-- RISK SCORE CARD -->
+      <div class="tool-card reveal" style="margin-bottom:1.5rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+          <div>
+            <div style="font-family:'Orbitron',monospace;font-size:0.75rem;color:#4a7a9a;letter-spacing:2px;margin-bottom:0.5rem;">THREAT ASSESSMENT</div>
+            <div id="ph-verdict" style="font-family:'Orbitron',monospace;font-size:2rem;font-weight:700;">—</div>
+            <div id="ph-category" style="font-size:0.85rem;color:#5a7a95;margin-top:4px;"></div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-family:'Orbitron',monospace;font-size:0.7rem;color:#4a7a9a;letter-spacing:2px;margin-bottom:0.5rem;">RISK SCORE</div>
+            <div id="ph-score-ring" style="position:relative;width:110px;height:110px;margin:0 auto;">
+              <svg width="110" height="110" viewBox="0 0 110 110">
+                <circle cx="55" cy="55" r="46" fill="none" stroke="rgba(0,245,255,0.08)" stroke-width="10"/>
+                <circle id="ph-ring-circle" cx="55" cy="55" r="46" fill="none" stroke="var(--cyan)" stroke-width="10"
+                  stroke-dasharray="289" stroke-dashoffset="289"
+                  stroke-linecap="round" transform="rotate(-90 55 55)"
+                  style="transition:stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1),stroke 0.5s;"/>
+              </svg>
+              <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">
+                <div id="ph-score-num" style="font-family:'Orbitron',monospace;font-size:1.5rem;font-weight:700;color:var(--cyan);">0%</div>
+                <div style="font-size:0.6rem;color:#4a7a9a;letter-spacing:1px;">RISK</div>
+              </div>
+            </div>
+          </div>
+          <div id="ph-badge-box" style="text-align:center;">
+            <div id="ph-risk-badge" style="display:inline-block;padding:10px 28px;border-radius:30px;font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;letter-spacing:2px;">SAFE</div>
+            <div id="ph-threat-count" style="font-size:0.8rem;color:#5a7a95;margin-top:8px;"></div>
+          </div>
+        </div>
+        <!-- Risk bar -->
+        <div style="margin-top:1.5rem;">
+          <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:#3a6a8a;font-family:'Share Tech Mono',monospace;margin-bottom:6px;">
+            <span>SAFE</span><span>LOW RISK</span><span>MEDIUM</span><span>HIGH RISK</span><span>CRITICAL</span>
+          </div>
+          <div style="height:10px;border-radius:5px;background:linear-gradient(90deg,#00ff88,#ffaa00,#ff6644,#ff3344);position:relative;overflow:visible;">
+            <div id="ph-risk-needle" style="position:absolute;top:-4px;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid #020810;box-shadow:0 0 12px rgba(0,245,255,0.6);transform:translateX(-50%);transition:left 1.2s cubic-bezier(0.4,0,0.2,1);left:0%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2-COL LAYOUT: Threats + Extracted Info -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+
+        <!-- Detected Threats -->
+        <div class="tool-card reveal" style="margin-bottom:0;">
+          <div style="font-family:'Orbitron',monospace;font-size:0.8rem;color:#ff6677;letter-spacing:1.5px;margin-bottom:1rem;display:flex;align-items:center;gap:8px;">⚠️ DETECTED THREATS</div>
+          <div id="ph-threats-list" style="font-size:0.85rem;line-height:1.8;"></div>
+        </div>
+
+        <!-- Extracted Info -->
+        <div class="tool-card reveal" style="margin-bottom:0;">
+          <div style="font-family:'Orbitron',monospace;font-size:0.8rem;color:var(--cyan);letter-spacing:1.5px;margin-bottom:1rem;display:flex;align-items:center;gap:8px;">🔎 EXTRACTED INTEL</div>
+          <div id="ph-intel" style="font-size:0.82rem;font-family:'Share Tech Mono',monospace;line-height:1.8;"></div>
+        </div>
+      </div>
+
+      <!-- Highlighted Body -->
+      <div class="tool-card reveal" style="margin-bottom:1.5rem;">
+        <div style="font-family:'Orbitron',monospace;font-size:0.8rem;color:#ffaa00;letter-spacing:1.5px;margin-bottom:1rem;">🔦 HIGHLIGHTED SUSPICIOUS CONTENT</div>
+        <div id="ph-highlighted" style="background:rgba(0,5,15,0.9);border:1px solid rgba(0,245,255,0.1);border-radius:10px;padding:1.2rem;font-size:0.88rem;line-height:1.8;font-family:'Inter',sans-serif;white-space:pre-wrap;word-break:break-word;max-height:300px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- Why Suspicious + Phishing Category -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">
+        <div class="tool-card reveal" style="margin-bottom:0;">
+          <div style="font-family:'Orbitron',monospace;font-size:0.8rem;color:#ff00aa;letter-spacing:1.5px;margin-bottom:1rem;">🧠 WHY SUSPICIOUS</div>
+          <div id="ph-why" style="font-size:0.85rem;color:#8ab0cc;line-height:1.7;"></div>
+        </div>
+        <div class="tool-card reveal" style="margin-bottom:0;">
+          <div style="font-family:'Orbitron',monospace;font-size:0.8rem;color:var(--cyan);letter-spacing:1.5px;margin-bottom:1rem;">🏷️ PHISHING CATEGORY</div>
+          <div id="ph-phish-type" style="font-size:0.85rem;color:#8ab0cc;line-height:1.7;"></div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.8rem;color:var(--green);letter-spacing:1.5px;margin:1rem 0 0.8rem;">📊 EMAIL STATISTICS</div>
+          <div id="ph-stats" style="font-size:0.82rem;font-family:'Share Tech Mono',monospace;color:#6a9ab5;line-height:1.8;"></div>
+        </div>
+      </div>
+
+      <!-- Recommendations -->
+      <div class="tool-card reveal" style="margin-bottom:1.5rem;border-color:rgba(0,255,136,0.2);">
+        <div style="font-family:'Orbitron',monospace;font-size:0.8rem;color:var(--green);letter-spacing:1.5px;margin-bottom:1rem;">🛡️ CYBERSECURITY RECOMMENDATIONS</div>
+        <div id="ph-recs" style="font-size:0.85rem;color:#8ab0cc;line-height:1.7;"></div>
+      </div>
+
+    </div><!-- end ph-results -->
+
+    <!-- ── PREVENTION METHODS SECTION ── -->
+    <div class="tool-card reveal" style="margin-top:2rem;border-color:rgba(255,0,170,0.15);">
+      <div style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:#e0f0ff;margin-bottom:0.5rem;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.3rem;">🧱</span> Email Phishing Prevention Guide
+      </div>
+      <p style="font-size:0.82rem;color:#3a6a8a;margin-bottom:2rem;font-family:'Share Tech Mono',monospace;letter-spacing:0.5px;">Master these habits to make yourself phishing-proof</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem;">
+
+        <div style="background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.1);border-radius:12px;padding:1.2rem;transition:all 0.3s;" onmouseover="this.style.borderColor='rgba(0,245,255,0.35)';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='rgba(0,245,255,0.1)';this.style.transform='none'">
+          <div style="font-size:1.6rem;margin-bottom:0.6rem;">🔎</div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.78rem;color:var(--cyan);margin-bottom:0.5rem;letter-spacing:0.5px;">VERIFY THE SENDER</div>
+          <p style="font-size:0.8rem;color:#5a7a95;line-height:1.6;">Always check the full email address — not just the display name. Attackers use look-alike domains like <span style="color:#ffaa00;font-family:'Share Tech Mono',monospace;">paypa1.com</span> or <span style="color:#ffaa00;font-family:'Share Tech Mono',monospace;">amaz0n-support.net</span>.</p>
+        </div>
+
+        <div style="background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.1);border-radius:12px;padding:1.2rem;transition:all 0.3s;" onmouseover="this.style.borderColor='rgba(0,245,255,0.35)';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='rgba(0,245,255,0.1)';this.style.transform='none'">
+          <div style="font-size:1.6rem;margin-bottom:0.6rem;">🔗</div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.78rem;color:var(--cyan);margin-bottom:0.5rem;letter-spacing:0.5px;">HOVER BEFORE YOU CLICK</div>
+          <p style="font-size:0.8rem;color:#5a7a95;line-height:1.6;">Hover over every link to preview the real destination URL in your browser's status bar. If the URL doesn't match the claimed site, do not click.</p>
+        </div>
+
+        <div style="background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.1);border-radius:12px;padding:1.2rem;transition:all 0.3s;" onmouseover="this.style.borderColor='rgba(0,245,255,0.35)';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='rgba(0,245,255,0.1)';this.style.transform='none'">
+          <div style="font-size:1.6rem;margin-bottom:0.6rem;">🚫</div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.78rem;color:var(--cyan);margin-bottom:0.5rem;letter-spacing:0.5px;">NEVER SHARE CREDENTIALS</div>
+          <p style="font-size:0.8rem;color:#5a7a95;line-height:1.6;">Legitimate companies never ask for passwords, OTPs, PINs, or credit card numbers via email. If an email asks for this, it's phishing — 100%.</p>
+        </div>
+
+        <div style="background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.1);border-radius:12px;padding:1.2rem;transition:all 0.3s;" onmouseover="this.style.borderColor='rgba(0,245,255,0.35)';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='rgba(0,245,255,0.1)';this.style.transform='none'">
+          <div style="font-size:1.6rem;margin-bottom:0.6rem;">⏱️</div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.78rem;color:var(--cyan);margin-bottom:0.5rem;letter-spacing:0.5px;">IGNORE URGENCY TACTICS</div>
+          <p style="font-size:0.8rem;color:#5a7a95;line-height:1.6;">Phrases like "Act within 24 hours!", "Account will be deleted!", or "Immediate action required!" are designed to bypass rational thinking. Slow down and verify.</p>
+        </div>
+
+        <div style="background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.1);border-radius:12px;padding:1.2rem;transition:all 0.3s;" onmouseover="this.style.borderColor='rgba(0,245,255,0.35)';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='rgba(0,245,255,0.1)';this.style.transform='none'">
+          <div style="font-size:1.6rem;margin-bottom:0.6rem;">📎</div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.78rem;color:var(--cyan);margin-bottom:0.5rem;letter-spacing:0.5px;">BEWARE OF ATTACHMENTS</div>
+          <p style="font-size:0.8rem;color:#5a7a95;line-height:1.6;">Never open attachments from unknown senders — especially <span style="color:#ffaa00;font-family:'Share Tech Mono',monospace;">.exe, .zip, .docm, .pdf</span> files from unexpected emails. They may contain malware or ransomware.</p>
+        </div>
+
+        <div style="background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.1);border-radius:12px;padding:1.2rem;transition:all 0.3s;" onmouseover="this.style.borderColor='rgba(0,245,255,0.35)';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='rgba(0,245,255,0.1)';this.style.transform='none'">
+          <div style="font-size:1.6rem;margin-bottom:0.6rem;">🔐</div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.78rem;color:var(--cyan);margin-bottom:0.5rem;letter-spacing:0.5px;">ENABLE MFA EVERYWHERE</div>
+          <p style="font-size:0.8rem;color:#5a7a95;line-height:1.6;">Multi-Factor Authentication ensures that even if attackers steal your password via phishing, they still can't access your account without the second factor.</p>
+        </div>
+
+        <div style="background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.1);border-radius:12px;padding:1.2rem;transition:all 0.3s;" onmouseover="this.style.borderColor='rgba(0,245,255,0.35)';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='rgba(0,245,255,0.1)';this.style.transform='none'">
+          <div style="font-size:1.6rem;margin-bottom:0.6rem;">🛡️</div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.78rem;color:var(--cyan);margin-bottom:0.5rem;letter-spacing:0.5px;">USE EMAIL FILTERS</div>
+          <p style="font-size:0.8rem;color:#5a7a95;line-height:1.6;">Enable spam filters and email security gateways. Services like Google Workspace and Microsoft 365 have built-in anti-phishing protection that blocks most threats automatically.</p>
+        </div>
+
+        <div style="background:rgba(0,245,255,0.04);border:1px solid rgba(0,245,255,0.1);border-radius:12px;padding:1.2rem;transition:all 0.3s;" onmouseover="this.style.borderColor='rgba(0,245,255,0.35)';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='rgba(0,245,255,0.1)';this.style.transform='none'">
+          <div style="font-size:1.6rem;margin-bottom:0.6rem;">📢</div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.78rem;color:var(--cyan);margin-bottom:0.5rem;letter-spacing:0.5px;">REPORT PHISHING EMAILS</div>
+          <p style="font-size:0.8rem;color:#5a7a95;line-height:1.6;">In India, report phishing to <span style="color:var(--cyan);font-family:'Share Tech Mono',monospace;">report@phishing.gov.in</span> or <span style="color:var(--cyan);font-family:'Share Tech Mono',monospace;">cybercrime.gov.in</span>. Reporting helps authorities take down phishing infrastructure quickly.</p>
+        </div>
+
+        <div style="background:rgba(255,0,170,0.04);border:1px solid rgba(255,0,170,0.12);border-radius:12px;padding:1.2rem;transition:all 0.3s;" onmouseover="this.style.borderColor='rgba(255,0,170,0.4)';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='rgba(255,0,170,0.12)';this.style.transform='none'">
+          <div style="font-size:1.6rem;margin-bottom:0.6rem;">🧠</div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.78rem;color:#ff00aa;margin-bottom:0.5rem;letter-spacing:0.5px;">THE GOLDEN RULE</div>
+          <p style="font-size:0.8rem;color:#5a7a95;line-height:1.6;">When in doubt — <strong style="color:#e0f0ff;">don't click, don't reply, don't open.</strong> Contact the supposed sender directly through their official website or phone number to verify any email request.</p>
+        </div>
+
+      </div>
+
+      <!-- Red flags quick reference -->
+      <div style="margin-top:2rem;background:rgba(255,51,68,0.04);border:1px solid rgba(255,51,68,0.15);border-radius:12px;padding:1.5rem;">
+        <div style="font-family:'Orbitron',monospace;font-size:0.8rem;color:#ff6677;letter-spacing:1px;margin-bottom:1rem;">🚩 TOP PHISHING RED FLAGS — INSTANT CHECKLIST</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.6rem;">
+          <div style="font-size:0.8rem;color:#8ab0cc;display:flex;align-items:flex-start;gap:8px;"><span style="color:#ff6677;flex-shrink:0;">▹</span>Generic greeting ("Dear Customer")</div>
+          <div style="font-size:0.8rem;color:#8ab0cc;display:flex;align-items:flex-start;gap:8px;"><span style="color:#ff6677;flex-shrink:0;">▹</span>Mismatched sender &amp; reply-to address</div>
+          <div style="font-size:0.8rem;color:#8ab0cc;display:flex;align-items:flex-start;gap:8px;"><span style="color:#ff6677;flex-shrink:0;">▹</span>Spelling/grammar mistakes throughout</div>
+          <div style="font-size:0.8rem;color:#8ab0cc;display:flex;align-items:flex-start;gap:8px;"><span style="color:#ff6677;flex-shrink:0;">▹</span>Suspicious shortened URL (bit.ly, tinyurl)</div>
+          <div style="font-size:0.8rem;color:#8ab0cc;display:flex;align-items:flex-start;gap:8px;"><span style="color:#ff6677;flex-shrink:0;">▹</span>Request for credentials or OTP via email</div>
+          <div style="font-size:0.8rem;color:#8ab0cc;display:flex;align-items:flex-start;gap:8px;"><span style="color:#ff6677;flex-shrink:0;">▹</span>Threats of account suspension / legal action</div>
+          <div style="font-size:0.8rem;color:#8ab0cc;display:flex;align-items:flex-start;gap:8px;"><span style="color:#ff6677;flex-shrink:0;">▹</span>Prize / lottery / unexpected reward claims</div>
+          <div style="font-size:0.8rem;color:#8ab0cc;display:flex;align-items:flex-start;gap:8px;"><span style="color:#ff6677;flex-shrink:0;">▹</span>Unexpected attachments from unknown senders</div>
+          <div style="font-size:0.8rem;color:#8ab0cc;display:flex;align-items:flex-start;gap:8px;"><span style="color:#ff6677;flex-shrink:0;">▹</span>HTTP links (non-HTTPS) in emails</div>
+          <div style="font-size:0.8rem;color:#8ab0cc;display:flex;align-items:flex-start;gap:8px;"><span style="color:#ff6677;flex-shrink:0;">▹</span>Urgency / extremely short deadlines</div>
+          <div style="font-size:0.8rem;color:#8ab0cc;display:flex;align-items:flex-start;gap:8px;"><span style="color:#ff6677;flex-shrink:0;">▹</span>Too-good-to-be-true offers or deals</div>
+          <div style="font-size:0.8rem;color:#8ab0cc;display:flex;align-items:flex-start;gap:8px;"><span style="color:#ff6677;flex-shrink:0;">▹</span>Lookalike domain names (paypa1, amaz0n)</div>
+        </div>
+      </div>
+
+    </div><!-- end prevention section -->
+
+  </div>
+</div>
+<!-- ══════════ END PHISHING PAGE ══════════ -->
+
+<div id="tools" class="page">
+  <div class="page-header">
+    <h1>⚙️ Cybersecurity Tools</h1>
+    <p>Hover over each card to discover the tool's capabilities</p>
+    <div class="cyber-line"></div>
+  </div>
+  <div class="tools-grid" id="tools-grid"></div>
+</div>
+
+<div id="emergency" class="page">
+  <div class="page-header">
+    <h1>🚨 Emergency Help Center</h1>
+    <p>Immediate response guides for active cyber incidents</p>
+    <div class="cyber-line"></div>
+  </div>
+  <div class="emergency-grid" id="emergency-grid"></div>
+  <div class="emergency-detail" id="emergency-detail" style="padding:0 2rem 3rem;max-width:900px;margin:0 auto;">
+    <div id="emergency-content"></div>
+  </div>
+</div>
+
+
+
+<div id="about" class="page">
+  <div class="page-header">
+    <h1>👤 About CyberSafe Guardian</h1>
+    <div class="cyber-line"></div>
+  </div>
+  <div class="about-content">
+    <p class="mission-text">Our mission is to democratize cybersecurity knowledge — empowering individuals, students, and organizations with the tools and guidance needed to defend against the ever-evolving landscape of cyber threats.</p>
+    <div class="about-grid">
+      <div class="about-card reveal">
+        <h3>🎯 PROJECT OVERVIEW</h3>
+        <p>CyberSafe Guardian is a comprehensive cybersecurity platform built to provide real-time threat analysis, educational resources, emergency response guides, and professional security tools — all accessible through a single intuitive interface.</p>
+      </div>
+      <div class="about-card reveal">
+        <h3>🚀 MISSION</h3>
+        <p>We simplify cybersecurity by providing easy-to-use security analysis tools that help users evaluate passwords, detect phishing links, scan files, and build safer online habits. Our platform makes essential security checks accessible, enabling individuals to identify potential risks and make informed decisions with greater confidence.</p>
+      </div>
+      <div class="about-card reveal" style="grid-column:1/-1">
+        <h3>🛠️ TECHNOLOGIES USED</h3>
+        <div class="tech-stack">
+          <span class="tech-badge">HTML5</span>
+          <span class="tech-badge">CSS3</span>
+          <span class="tech-badge">JavaScript (ES6+)</span>
+          <span class="tech-badge">Canvas API</span>
+          <span class="tech-badge">Web Crypto API</span>
+          <span class="tech-badge">File API</span>
+          <span class="tech-badge">CSS Animations</span>
+          <span class="tech-badge">3D Transforms</span>
+          <span class="tech-badge">Intersection Observer</span>
+          <span class="tech-badge">Google Fonts</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SERVICES PROVIDED ── -->
+    <div style="margin-top:3rem;">
+      <div style="font-family:'Orbitron',monospace;font-size:1rem;font-weight:700;color:#e0f0ff;text-align:center;margin-bottom:0.4rem;letter-spacing:1px;">⚡ SERVICES PROVIDED</div>
+      <div style="text-align:center;font-size:0.8rem;color:#3a6a8a;font-family:'Share Tech Mono',monospace;margin-bottom:2rem;letter-spacing:0.5px;">Everything CyberSafe Guardian offers — in one place</div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.2rem;">
+
+        <!-- Password Checker -->
+        <div class="reveal" style="background:linear-gradient(135deg,rgba(0,245,255,0.07),rgba(0,245,255,0.02));border:1px solid rgba(0,245,255,0.25);border-radius:16px;padding:1.4rem;position:relative;overflow:hidden;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,245,255,0.12)';this.style.borderColor='rgba(0,245,255,0.5)'" onmouseout="this.style.transform='none';this.style.boxShadow='none';this.style.borderColor='rgba(0,245,255,0.25)'">
+          <div style="position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,#00f5ff,transparent);border-radius:16px 0 0 16px;"></div>
+          <div style="font-size:1.8rem;margin-bottom:0.7rem;">🔑</div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.82rem;color:var(--cyan);font-weight:700;margin-bottom:0.5rem;letter-spacing:0.5px;">PASSWORD STRENGTH CHECKER</div>
+          <p style="font-size:0.8rem;color:#5a7a95;line-height:1.6;margin:0;">Real-time password analysis — scores entropy, estimates crack time, checks against common passwords, and gives specific improvement recommendations.</p>
+        </div>
+
+        <!-- URL Safety Checker -->
+        <div class="reveal" style="background:linear-gradient(135deg,rgba(0,245,255,0.07),rgba(0,245,255,0.02));border:1px solid rgba(0,245,255,0.25);border-radius:16px;padding:1.4rem;position:relative;overflow:hidden;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,245,255,0.12)';this.style.borderColor='rgba(0,245,255,0.5)'" onmouseout="this.style.transform='none';this.style.boxShadow='none';this.style.borderColor='rgba(0,245,255,0.25)'">
+          <div style="position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,#00f5ff,transparent);border-radius:16px 0 0 16px;"></div>
+          <div style="font-size:1.8rem;margin-bottom:0.7rem;">🔗</div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.82rem;color:var(--cyan);font-weight:700;margin-bottom:0.5rem;letter-spacing:0.5px;">URL SAFETY CHECKER</div>
+          <p style="font-size:0.8rem;color:#5a7a95;line-height:1.6;margin:0;">Scans any URL for phishing indicators — detects HTTP links, suspicious TLDs, URL shorteners, IP-based URLs, dangerous file extensions, and calculates a risk score /100.</p>
+        </div>
+
+        <!-- File Safety Checker -->
+        <div class="reveal" style="background:linear-gradient(135deg,rgba(0,245,255,0.07),rgba(0,245,255,0.02));border:1px solid rgba(0,245,255,0.25);border-radius:16px;padding:1.4rem;position:relative;overflow:hidden;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,245,255,0.12)';this.style.borderColor='rgba(0,245,255,0.5)'" onmouseout="this.style.transform='none';this.style.boxShadow='none';this.style.borderColor='rgba(0,245,255,0.25)'">
+          <div style="position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,#00f5ff,transparent);border-radius:16px 0 0 16px;"></div>
+          <div style="font-size:1.8rem;margin-bottom:0.7rem;">📁</div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.82rem;color:var(--cyan);font-weight:700;margin-bottom:0.5rem;letter-spacing:0.5px;">FILE SAFETY CHECKER</div>
+          <p style="font-size:0.8rem;color:#5a7a95;line-height:1.6;margin:0;">Drag & drop any file to instantly check its extension against known dangerous types (.exe, .bat, .ps1 etc.). Runs 100% locally — no uploads to any server.</p>
+        </div>
+
+        <!-- Phishing Email Detector -->
+        <div class="reveal" style="background:linear-gradient(135deg,rgba(255,0,170,0.07),rgba(255,0,170,0.02));border:1px solid rgba(255,0,170,0.25);border-radius:16px;padding:1.4rem;position:relative;overflow:hidden;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(255,0,170,0.1)';this.style.borderColor='rgba(255,0,170,0.5)'" onmouseout="this.style.transform='none';this.style.boxShadow='none';this.style.borderColor='rgba(255,0,170,0.25)'">
+          <div style="position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,#ff00aa,transparent);border-radius:16px 0 0 16px;"></div>
+          <div style="font-size:1.8rem;margin-bottom:0.7rem;">🎣</div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.82rem;color:#ff00aa;font-weight:700;margin-bottom:0.5rem;letter-spacing:0.5px;">PHISHING EMAIL DETECTOR</div>
+          <p style="font-size:0.8rem;color:#5a7a95;line-height:1.6;margin:0;">Paste or upload email content (PDF, EML, TXT, MSG) to get a full heuristic analysis — risk score, threat list, sender/recipient detection, highlighted suspicious content, and downloadable report.</p>
+        </div>
+
+        <!-- Emergency Help Center -->
+        <div class="reveal" style="background:linear-gradient(135deg,rgba(255,51,68,0.07),rgba(255,51,68,0.02));border:1px solid rgba(255,51,68,0.25);border-radius:16px;padding:1.4rem;position:relative;overflow:hidden;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(255,51,68,0.1)';this.style.borderColor='rgba(255,51,68,0.5)'" onmouseout="this.style.transform='none';this.style.boxShadow='none';this.style.borderColor='rgba(255,51,68,0.25)'">
+          <div style="position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,#ff3344,transparent);border-radius:16px 0 0 16px;"></div>
+          <div style="font-size:1.8rem;margin-bottom:0.7rem;">🚨</div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.82rem;color:#ff6677;font-weight:700;margin-bottom:0.5rem;letter-spacing:0.5px;">EMERGENCY HELP CENTER</div>
+          <p style="font-size:0.8rem;color:#5a7a95;line-height:1.6;margin:0;">Immediate step-by-step response guides for 6 active cyber incidents: Gmail hacked, Instagram hacked, WhatsApp hacked, Malware infection, Phishing attack, and Ransomware attack.</p>
+        </div>
+
+        <!-- Cybersecurity Tools -->
+        <div class="reveal" style="background:linear-gradient(135deg,rgba(0,255,136,0.07),rgba(0,255,136,0.02));border:1px solid rgba(0,255,136,0.25);border-radius:16px;padding:1.4rem;position:relative;overflow:hidden;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,255,136,0.1)';this.style.borderColor='rgba(0,255,136,0.5)'" onmouseout="this.style.transform='none';this.style.boxShadow='none';this.style.borderColor='rgba(0,255,136,0.25)'">
+          <div style="position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,#00ff88,transparent);border-radius:16px 0 0 16px;"></div>
+          <div style="font-size:1.8rem;margin-bottom:0.7rem;">⚙️</div>
+          <div style="font-family:'Orbitron',monospace;font-size:0.82rem;color:var(--green);font-weight:700;margin-bottom:0.5rem;letter-spacing:0.5px;">CYBERSECURITY TOOLS LIBRARY</div>
+          <p style="font-size:0.8rem;color:#5a7a95;line-height:1.6;margin:0;">Interactive 3D flip-card library of 12 professional security tools — Nmap, Wireshark, Burp Suite, Metasploit, Nessus, OpenVAS, Autopsy, John the Ripper, VirusTotal, Aircrack-ng, OWASP ZAP, Hashcat.</p>
+        </div>
+
+        <!-- AI Chatbot -->
+        <div class="reveal" style="background:linear-gradient(135deg,rgba(0,245,255,0.07),rgba(255,0,170,0.04));border:1px solid rgba(0,245,255,0.25);border-radius:16px;padding:1.4rem;position:relative;overflow:hidden;transition:all 0.3s;grid-column:1/-1;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,245,255,0.1)';this.style.borderColor='rgba(0,245,255,0.5)'" onmouseout="this.style.transform='none';this.style.boxShadow='none';this.style.borderColor='rgba(0,245,255,0.25)'">
+          <div style="position:absolute;top:0;left:0;width:3px;height:100%;background:linear-gradient(180deg,#00f5ff,#ff00aa);border-radius:16px 0 0 16px;"></div>
+          <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+            <div style="font-size:1.8rem;">🤖</div>
+            <div>
+              <div style="font-family:'Orbitron',monospace;font-size:0.82rem;color:var(--cyan);font-weight:700;margin-bottom:0.4rem;letter-spacing:0.5px;">CYBERSAFE ASSISTANT — AI CHATBOT</div>
+              <p style="font-size:0.8rem;color:#5a7a95;line-height:1.6;margin:0;">A built-in site-specific chatbot that answers questions about all tools, cybersecurity concepts, emergency response, malware types, prevention tips, and contact info — entirely offline with no external APIs.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="contact" class="page">
+  <div class="page-header">
+    <h1>📡 Contact Us</h1>
+    <p>Get in touch with the CyberSafe Guardian team</p>
+    <div class="cyber-line"></div>
+  </div>
+  <div class="contact-content" style="max-width:780px;">
+
+    <div class="contact-form" style="margin-bottom:1.5rem;text-align:center;">
+      <!-- Developer avatar + name -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.8rem;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid rgba(0,245,255,0.12);">
+        <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,rgba(0,245,255,0.2),rgba(255,0,170,0.15));border:2px solid rgba(0,245,255,0.4);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:1.6rem;color:var(--cyan);font-weight:700;">D</div>
+        <div>
+          <div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;color:#e0f0ff;letter-spacing:1px;">DARSHAN</div>
+          <div style="font-size:0.8rem;color:#4a7a9a;margin-top:3px;font-family:'Share Tech Mono',monospace;">IT Student &amp; Cybersecurity Learner</div>
+        </div>
+      </div>
+
+      <!-- Email centered -->
+      <a href="mailto:parmardarshan7544@gmail.com" style="display:flex;align-items:center;gap:12px;background:rgba(0,245,255,0.05);border:1px solid rgba(0,245,255,0.25);border-radius:14px;padding:1rem 1.5rem;text-decoration:none;transition:all 0.3s;margin:0 auto 1.8rem;width:100%;max-width:460px;box-sizing:border-box;justify-content:center;" onmouseover="this.style.borderColor='rgba(0,245,255,0.6)';this.style.background='rgba(0,245,255,0.1)';this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='rgba(0,245,255,0.25)';this.style.background='rgba(0,245,255,0.05)';this.style.transform='none';">
+        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,rgba(0,245,255,0.15),rgba(0,245,255,0.05));border:1px solid rgba(0,245,255,0.3);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">✉️</div>
+        <div style="text-align:left;min-width:0;overflow:hidden;">
+          <div style="font-size:0.7rem;color:#4a7a9a;letter-spacing:1.5px;font-family:'Share Tech Mono',monospace;text-transform:uppercase;margin-bottom:3px;">Email Us</div>
+          <div style="font-size:0.88rem;color:var(--cyan);font-weight:600;letter-spacing:0.3px;word-break:break-all;">parmardarshan7544@gmail.com</div>
+        </div>
+      </a>
+
+      <!-- Tagline paragraph -->
+      <p style="font-size:0.88rem;color:#6a8aaa;line-height:1.8;max-width:500px;margin:0 auto;font-family:'Inter',sans-serif;">
+        We'd love to hear from you! Whether you have questions, feedback, suggestions, or need assistance, feel free to get in touch.<br><br>
+        Our goal is to spread cybersecurity awareness and help users stay safe online. Your feedback helps us improve our platform and provide a better experience.
+      </p>
+    </div>
+
+    <div class="contact-form">
+      <div style="font-family:'Orbitron',monospace;font-size:0.85rem;color:var(--cyan);letter-spacing:1px;margin-bottom:1.5rem;">📨 SEND A MESSAGE</div>
+      <div class="form-group">
+        <label>Your Name</label>
+        <input class="cyber-input" type="text" id="contact-name" placeholder="John Doe">
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input class="cyber-input" type="email" id="contact-email" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label>Message</label>
+        <textarea class="cyber-input" id="contact-msg" placeholder="Describe your security concern or question..."></textarea>
+      </div>
+      <button class="analyze-btn" onclick="submitContact()">SEND SECURE MESSAGE</button>
+      <div class="form-status form-success" id="contact-status">
+        ✅ Message received! Processing sheet data stream...
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════
+   3D PARTICLE / NETWORK CANVAS BACKGROUND
+══════════════════════════════════════════════ */
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [], mouse = {x:0, y:0};
+
+function resize(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+document.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+
+class Particle {
+  constructor(){
+    this.reset();
+  }
+  reset(){
+    this.x = Math.random() * W;
+    this.y = Math.random() * H;
+    this.z = Math.random() * 3 + 0.5;
+    this.vx = (Math.random() - 0.5) * 0.4 / this.z;
+    this.vy = (Math.random() - 0.5) * 0.4 / this.z;
+    this.r = Math.random() * 1.5 + 0.5;
+    this.opacity = Math.random() * 0.5 + 0.1;
+    this.color = Math.random() > 0.7 ? '#ff00aa' : '#00f5ff';
+  }
+  update(){
+    this.x += this.vx;
+    this.y += this.vy;
+    // Subtle mouse repulsion
+    const dx = this.x - mouse.x, dy = this.y - mouse.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if(dist < 120){
+      this.x += dx / dist * 0.5;
+      this.y += dy / dist * 0.5;
+    }
+    if(this.x < -10) this.x = W + 10;
+    if(this.x > W+10) this.x = -10;
+    if(this.y < -10) this.y = H + 10;
+    if(this.y > H+10) this.y = -10;
+  }
+  draw(){
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r / this.z, 0, Math.PI*2);
+    ctx.fillStyle = this.color + Math.floor(this.opacity * 255).toString(16).padStart(2,'0');
+    ctx.fill();
+  }
+}
+
+for(let i=0; i<140; i++) particles.push(new Particle());
+
+function connectParticles(){
+  for(let i=0; i<particles.length; i++){
+    for(let j=i+1; j<particles.length; j++){
+      const a = particles[i], b = particles[j];
+      const dx = a.x - b.x, dy = a.y - b.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if(dist < 120){
+        const opacity = (1 - dist/120) * 0.12;
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = `rgba(0,245,255,${opacity})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+}
+
+// Falling "matrix" characters
+const matrixChars = [];
+const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホ';
+for(let i=0; i<30; i++){
+  matrixChars.push({
+    x: Math.random()*W,
+    y: Math.random()*H,
+    speed: Math.random()*1.5+0.5,
+    char: chars[Math.floor(Math.random()*chars.length)],
+    opacity: Math.random()*0.08+0.02,
+    size: Math.random()*8+8
+  });
+}
+
+function animateBG(){
+  ctx.clearRect(0,0,W,H);
+  // Grid overlay
+  ctx.strokeStyle = 'rgba(0,245,255,0.02)';
+  ctx.lineWidth = 1;
+  for(let x=0;x<W;x+=60){
+    ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
+  }
+  for(let y=0;y<H;y+=60){
+    ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+  }
+  // Matrix chars
+  matrixChars.forEach(m => {
+    ctx.font = `${m.size}px 'Share Tech Mono', monospace`;
+    ctx.fillStyle = `rgba(0,255,136,${m.opacity})`;
+    ctx.fillText(m.char, m.x, m.y);
+    m.y += m.speed;
+    if(m.y > H+20){ m.y = -20; m.x = Math.random()*W; }
+    if(Math.random() < 0.01) m.char = chars[Math.floor(Math.random()*chars.length)];
+  });
+  connectParticles();
+  particles.forEach(p => { p.update(); p.draw(); });
+  requestAnimationFrame(animateBG);
+}
+animateBG();
+
+/* ══════════════════════════════════════════════
+   PAGE NAVIGATION
+══════════════════════════════════════════════ */
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+  window.scrollTo(0,0);
+  initReveal();
+  closeNav();
+}
+
+function toggleNav(){
+  document.getElementById('nav-links').classList.toggle('open');
+  document.getElementById('nav-toggle').classList.toggle('open');
+}
+function closeNav(){
+  document.getElementById('nav-links').classList.remove('open');
+  document.getElementById('nav-toggle').classList.remove('open');
+}
+
+/* Navigate to a page AND scroll to a specific element inside it */
+function showPageSection(pageId, sectionId){
+  /* 1. Switch to the target page (same as showPage but without calling initReveal yet) */
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.nav-links a').forEach(function(a){ a.classList.remove('active'); });
+  document.getElementById(pageId).classList.add('active');
+  document.getElementById('nav-'+pageId).classList.add('active');
+  window.scrollTo(0, 0);
+
+  /* 2. Force-show ALL .reveal elements on this page RIGHT NOW
+        so they are visible before we try to scroll to them.
+        (initReveal resets opacity to 0 which breaks scrollIntoView) */
+  var targetPage = document.getElementById(pageId);
+  targetPage.querySelectorAll('.reveal, .reveal-left').forEach(function(el){
+    el.classList.add('visible');
+  });
+
+  /* 3. Now safe to run initReveal for future off-screen elements */
+  initReveal();
+
+  /* 4. Scroll to section after a paint frame — offset 80px for fixed nav */
+  setTimeout(function(){
+    var el = document.getElementById(sectionId);
+    if(el){
+      var top = el.getBoundingClientRect().top + window.pageYOffset - 80;
+      window.scrollTo({ top: top, behavior: 'smooth' });
+      /* Also focus the first input inside for better UX */
+      var inp = el.querySelector('input, textarea');
+      if(inp){ setTimeout(function(){ inp.focus(); }, 400); }
+    }
+  }, 120);
+}
+
+/* ══════════════════════════════════════════════
+   SCROLL REVEAL
+══════════════════════════════════════════════ */
+function initReveal(){
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if(e.isIntersecting){
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, {threshold:0.1});
+  document.querySelectorAll('.reveal,.reveal-left').forEach(el => {
+    el.classList.remove('visible');
+    observer.observe(el);
+  });
+}
+initReveal();
+
+/* ══════════════════════════════════════════════
+   STAT COUNTER ANIMATION
+══════════════════════════════════════════════ */
+function animateCounters(){
+  document.querySelectorAll('[data-target]').forEach(el => {
+    const target = parseInt(el.dataset.target);
+    let current = 0;
+    const step = target / 60;
+    const timer = setInterval(() => {
+      current += step;
+      if(current >= target){ current = target; clearInterval(timer); }
+      if(target >= 1000000000) el.textContent = (current/1000000000).toFixed(1)+'B+';
+      else if(target >= 1000000) el.textContent = (current/1000000).toFixed(0)+'M+';
+      else if(target >= 1000) el.textContent = (current/1000).toFixed(0)+'K+';
+      else el.textContent = Math.floor(current).toLocaleString();
+    }, 30);
+  });
+}
+// Trigger when home page stats become visible
+const statsObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) animateCounters(); });
+},{threshold:0.3});
+document.querySelectorAll('.stat-num').forEach(el => statsObserver.observe(el));
+
+/* ══════════════════════════════════════════════
+   PASSWORD ANALYZER
+══════════════════════════════════════════════ */
+function togglePassView() {
+  const passInput = document.getElementById('pass-input');
+  const eyeBtn = document.getElementById('eye-btn');
+  if (passInput.type === 'password') {
+    passInput.type = 'text';
+    eyeBtn.textContent = '🙈';
+  } else {
+    passInput.type = 'password';
+    eyeBtn.textContent = '👁️';
+  }
+}
+
+function analyzePassword(pw){
+  const box = document.getElementById('pass-output');
+  if(!pw){ box.innerHTML='<div style="color:#2a4a6a;font-size:0.85rem;">⬆ Enter a password above to see analysis...</div>'; return; }
+
+  let score = 0;
+  const checks = {
+    length8: pw.length >= 8,
+    length12: pw.length >= 12,
+    length16: pw.length >= 16,
+    uppercase: /[A-Z]/.test(pw),
+    lowercase: /[a-z]/.test(pw),
+    numbers: /[0-9]/.test(pw),
+    symbols: /[^A-Za-z0-9]/.test(pw),
+    noCommon: !['password','123456','qwerty','abc123','letmein','welcome','admin','monkey','dragon','master'].includes(pw.toLowerCase())
+  };
+
+  if(checks.length8) score += 1;
+  if(checks.length12) score += 1;
+  if(checks.length16) score += 1;
+  if(checks.uppercase) score += 1;
+  if(checks.lowercase) score += 1;
+  if(checks.numbers) score += 1;
+  if(checks.symbols) score += 2;
+  if(!checks.noCommon) score = 0;
+
+  const levels = [
+    {label:'Very Weak', cls:'s-weak', pct:10, time:'Instantly', color:'#ff3344'},
+    {label:'Weak', cls:'s-weak', pct:25, time:'Minutes', color:'#ff6644'},
+    {label:'Fair', cls:'s-fair', pct:45, time:'Hours to days', color:'#ffaa00'},
+    {label:'Good', cls:'s-good', pct:65, time:'Months to years', color:'#00ccff'},
+    {label:'Strong', cls:'s-strong', pct:80, time:'Decades', color:'#00ff88'},
+    {label:'Excellent', cls:'s-excellent', pct:100, time:'Centuries+', color:'#00f5ff'}
+  ];
+  const lvl = score <= 1 ? levels[0] : score <= 2 ? levels[1] : score <= 3 ? levels[2] : score <= 4 ? levels[3] : score <= 6 ? levels[4] : levels[5];
+
+  const recs = [];
+  if(!checks.length8) recs.push('Use at least 8 characters');
+  if(!checks.length12) recs.push('Increase length to 12+ characters');
+  if(!checks.uppercase) recs.push('Add uppercase letters (A-Z)');
+  if(!checks.lowercase) recs.push('Add lowercase letters (a-z)');
+  if(!checks.numbers) recs.push('Include numbers (0-9)');
+  if(!checks.symbols) recs.push('Add special characters (!@#$%)');
+  if(!checks.noCommon) recs.push('⚠️ This is a commonly known password!');
+
+  const entropy = Math.round(pw.length * Math.log2(
+    (checks.lowercase?26:0)+(checks.uppercase?26:0)+(checks.numbers?10:0)+(checks.symbols?32:0)||10
+  ));
+
+  box.innerHTML = `
+    <div class="output-line"><span class="out-key">Strength:</span> <span style="color:${lvl.color};font-weight:700;">${lvl.label}</span></div>
+    <div class="strength-bar"><div class="strength-fill ${lvl.cls}" style="width:${lvl.pct}%"></div></div>
+    <div class="output-line" style="margin-top:12px"><span class="out-key">Score:</span> <span class="out-val">${score}/8</span></div>
+    <div class="output-line"><span class="out-key">Length:</span> <span class="out-val">${pw.length} characters</span></div>
+    <div class="output-line"><span class="out-key">Entropy:</span> <span class="out-val">~${entropy} bits</span></div>
+    <div class="output-line"><span class="out-key">Est. Crack Time:</span> <span class="out-val">${lvl.time}</span></div>
+    ${recs.length ? `<div class="output-line" style="margin-top:8px"><span class="out-key">Recommendations:</span></div>
+    ${recs.map(r=>`<div style="padding:3px 0;color:#6a8aaa;font-size:0.82rem;">  ▹ ${r}</div>`).join('')}` : '<div class="output-line"><span style="color:var(--green)">✅ All checks passed!</span></div>'}
+  `;
+}
+
+/* ══════════════════════════════════════════════
+   URL CHECKER
+══════════════════════════════════════════════ */
+function checkURL(url, forceShow){
+  const box = document.getElementById('url-output');
+  if(!url){ if(forceShow) box.innerHTML='<div style="color:#ff3344;">⚠️ Please enter a URL first</div>'; return; }
+  if(!url.startsWith('http')){ url = 'https://'+url; }
+
+  const suspiciousKeywords = ['login','secure','account','banking','paypal','amazon','verify','update','suspended','urgent','free','prize','winner','click','here','signin'];
+  const dangerousExtensions = ['.exe','.bat','.cmd','.ps1','.vbs','.js','.jar','.scr','.msi'];
+  const shorteners = ['bit.ly','tinyurl','t.co','goo.gl','ow.ly','buff.ly','is.gd'];
+
+  let riskScore = 0;
+  const issues = [];
+  const domain = url.replace(/https?:\/\//,'').split('/')[0].toLowerCase();
+
+  const isHTTPS = url.startsWith('https://');
+  if(!isHTTPS){ riskScore += 30; issues.push('No HTTPS encryption'); }
+
+  const hasIP = /\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.test(domain);
+  if(hasIP){ riskScore += 35; issues.push('Uses IP address instead of domain'); }
+
+  const subdomainCount = domain.split('.').length - 2;
+  if(subdomainCount > 2){ riskScore += 20; issues.push(`Excessive subdomains (${subdomainCount})`); }
+
+  const foundKeywords = suspiciousKeywords.filter(k => url.toLowerCase().includes(k));
+  if(foundKeywords.length > 0){ riskScore += foundKeywords.length * 10; issues.push(`Suspicious keywords: ${foundKeywords.join(', ')}`); }
+
+  const foundExt = dangerousExtensions.find(e => url.toLowerCase().endsWith(e));
+  if(foundExt){ riskScore += 40; issues.push(`Dangerous file extension: ${foundExt}`); }
+
+  const isShortener = shorteners.some(s => domain.includes(s));
+  if(isShortener){ riskScore += 15; issues.push('URL shortener detected (destination unknown)'); }
+
+  const hasSpecialChars = /[<>"{}|\\^`\[\]]/.test(url);
+  if(hasSpecialChars){ riskScore += 25; issues.push('Suspicious special characters in URL'); }
+
+  const riskLevel = riskScore === 0 ? 'Low' : riskScore < 30 ? 'Low-Medium' : riskScore < 60 ? 'Medium' : riskScore < 85 ? 'High' : 'Critical';
+  const badgeClass = riskScore < 30 ? 'risk-low' : riskScore < 60 ? 'risk-medium' : 'risk-high';
+
+  box.innerHTML = `
+    <div class="output-line"><span class="out-key">Risk Level:</span> <span class="risk-badge ${badgeClass}">${riskLevel}</span></div>
+    <div class="output-line"><span class="out-key">Risk Score:</span> <span class="out-val">${Math.min(riskScore,100)}/100</span></div>
+    <div class="output-line"><span class="out-key">HTTPS Status:</span> <span class="out-val">${isHTTPS ? '✅ Secure' : '❌ Insecure'}</span></div>
+    <div class="output-line"><span class="out-key">Domain:</span> <span class="out-val">${domain}</span></div>
+    <div class="output-line"><span class="out-key">URL Shortener:</span> <span class="out-val">${isShortener ? '⚠️ Yes' : '✅ No'}</span></div>
+    ${issues.length > 0 ? `<div class="output-line" style="margin-top:8px"><span class="out-key">⚠️ Issues Found:</span></div>${issues.map(i=>`<div style="padding:3px 0;color:#ff8866;font-size:0.82rem;">  ▹ ${i}</div>`).join('')}` : '<div style="color:var(--green);margin-top:8px;">✅ No suspicious patterns detected</div>'}
+    <div class="output-line" style="margin-top:8px"><span class="out-key">Safety Advice:</span> <span class="out-val">${riskScore >= 60 ? '🚫 Do NOT visit this URL' : riskScore >= 30 ? '⚠️ Proceed with caution' : '✅ Appears safe to visit'}</span></div>
+  `;
+}
+
+/* ══════════════════════════════════════════════
+   FILE CHECKER
+══════════════════════════════════════════════ */
+function dragOver(e){ e.preventDefault(); document.getElementById('file-drop').classList.add('drag-over'); }
+function dragLeave(){ document.getElementById('file-drop').classList.remove('drag-over'); }
+function handleDrop(e){ e.preventDefault(); dragLeave(); if(e.dataTransfer.files[0]) analyzeFile(e.dataTransfer.files[0]); }
+
+function analyzeFile(file){
+  if(!file) return;
+  const box = document.getElementById('file-output');
+  const ext = '.'+file.name.split('.').pop().toLowerCase();
+  const size = file.size;
+  const sizeStr = size < 1024 ? size+'B' : size < 1048576 ? (size/1024).toFixed(1)+'KB' : (size/1048576).toFixed(2)+'MB';
+
+  const dangerousExts = {
+    '.exe':['Executable','Critical — can run arbitrary code'],
+    '.bat':['Batch File','High — runs system commands'],
+    '.cmd':['Command Script','High — runs system commands'],
+    '.ps1':['PowerShell Script','High — powerful system access'],
+    '.vbs':['VBScript','High — scripting with system access'],
+    '.js':['JavaScript','Medium — can be malicious if run in Node'],
+    '.jar':['Java Archive','Medium — executes Java bytecode'],
+    '.scr':['Screen Saver','High — executes as program'],
+    '.msi':['Installer Package','High — installs software'],
+    '.iso':['Disk Image','Medium — may contain malware'],
+    '.dmg':['macOS Disk Image','Medium — executes on macOS'],
+    '.apk':['Android App','Medium — installs on Android'],
+    '.reg':['Registry File','High — modifies Windows registry'],
+  };
+  const safeExts = {
+    '.pdf':['PDF Document','Low — generally safe, disable JavaScript'],
+    '.docx':['Word Document','Low-Medium — may contain macros'],
+    '.xlsx':['Excel Spreadsheet','Low-Medium — may contain macros'],
+    '.jpg':['JPEG Image','Low — standard image format'],
+    '.png':['PNG Image','Low — standard image format'],
+    '.mp4':['Video File','Low — standard video format'],
+    '.txt':['Plain Text','Very Low — safest format'],
+    '.zip':['ZIP Archive','Low-Medium — contents unknown until extracted'],
+    '.rar':['RAR Archive','Low-Medium — contents unknown until extracted'],
+    '.csv':['CSV Data','Low — plain text data'],
+  };
+
+  let riskLevel, riskClass, extType, note;
+  if(dangerousExts[ext]){
+    [extType, note] = dangerousExts[ext];
+    riskLevel = note.split('—')[0].trim();
+    riskClass = riskLevel.toLowerCase().includes('critical') ? 'risk-high' : riskLevel.toLowerCase().includes('high') ? 'risk-high' : 'risk-medium';
+  } else if(safeExts[ext]){
+    [extType, note] = safeExts[ext];
+    riskLevel = note.split('—')[0].trim();
+    riskClass = riskLevel.toLowerCase().includes('very low') || riskLevel.toLowerCase()==='low' ? 'risk-low' : 'risk-medium';
+  } else {
+    extType = 'Unknown Type'; note = 'Unknown extension — treat with caution';
+    riskLevel = 'Unknown'; riskClass = 'risk-medium';
+  }
+
+  box.innerHTML = `
+    <div class="output-line"><span class="out-key">File Name:</span> <span class="out-val">${file.name}</span></div>
+    <div class="output-line"><span class="out-key">File Extension:</span> <span class="out-val">${ext}</span></div>
+    <div class="output-line"><span class="out-key">File Type:</span> <span class="out-val">${extType}</span></div>
+    <div class="output-line"><span class="out-key">File Size:</span> <span class="out-val">${sizeStr}</span></div>
+    <div class="output-line"><span class="out-key">Risk Level:</span> <span class="risk-badge ${riskClass}">${riskLevel}</span></div>
+    <div class="output-line" style="margin-top:8px"><span class="out-key">Recommendations:</span> <span class="out-val">${note}</span></div>
+    ${dangerousExts[ext] ? '<div style="color:#ff8866;margin-top:8px;font-size:0.82rem;">⚠️ Never open this type of file from untrusted sources. Scan with an antivirus first.</div>' : '<div style="color:var(--green);margin-top:8px;font-size:0.82rem;">✅ This file type is generally considered safe.</div>'}
+  `;
+}
+
+/* ══════════════════════════════════════════════
+   TOOLS FLIP CARDS DATA
+══════════════════════════════════════════════ */
+const toolsData = [
+  {icon:'🗺️', name:'Nmap', category:'Network Scanner', desc:'The king of network discovery', uses:['Discover live hosts on a network','Detect open ports and services','Fingerprint OS and software versions','Find firewall rules and filters'], diff:4},
+  {icon:'🦈', name:'Wireshark', category:'Packet Analyzer', desc:'Deep packet inspection', uses:['Capture live network traffic','Decode 100s of protocols in real-time','Analyze suspicious network behavior','Troubleshoot connectivity issues'], diff:3},
+  {icon:'🎯', name:'Burp Suite', category:'Web App Testing', desc:'Web vulnerability scanner & proxy', uses:['Intercept and modify HTTP/HTTPS traffic','Scan web apps for OWASP Top 10','Brute-force login forms','Test for SQLi, XSS, CSRF'], diff:4},
+  {icon:'💥', name:'Metasploit', category:'Exploitation Framework', desc:'World\'s most used pen-testing tool', uses:['Exploit known vulnerabilities','Generate custom payloads','Post-exploitation & pivoting','Automate security testing'], diff:5},
+  {icon:'👁️', name:'Nessus', category:'Vulnerability Scanner', desc:'Comprehensive vuln assessment', uses:['Scan for 65,000+ vulnerabilities','Audit configurations & compliance','Detect malware and botnets','Generate professional reports'], diff:3},
+  {icon:'🔬', name:'OpenVAS', category:'Vuln. Assessment', desc:'Open source security scanner', uses:['Full network vulnerability scans','Web application auditing','Configuration compliance checks','CVE-based vulnerability detection'], diff:3},
+  {icon:'🔍', name:'Autopsy', category:'Digital Forensics', desc:'Digital forensics platform', uses:['Recover deleted files & artifacts','Analyze browser history & emails','Perform timeline analysis','Extract mobile device data'], diff:4},
+  {icon:'🗺️', name:'Nmap', category:'Network Scanner', desc:'The king of network discovery', uses:['Discover live hosts on a network','Detect open ports and services','Fingerprint OS and software versions','Find firewall rules and filters'], diff:4},
+  {icon:'🦈', name:'Wireshark', category:'Packet Analyzer', desc:'Deep packet inspection', uses:['Capture live network traffic','Decode 100s of protocols in real-time','Analyze suspicious network behavior','Troubleshoot connectivity issues'], diff:3},
+  {icon:'🎯', name:'Burp Suite', category:'Web App Testing', desc:'Web vulnerability scanner & proxy', uses:['Intercept and modify HTTP/HTTPS traffic','Scan web apps for OWASP Top 10','Brute-force login forms','Test for SQLi, XSS, CSRF'], diff:4},
+  {icon:'💥', name:'Metasploit', category:'Exploitation Framework', desc:'World\'s most used pen-testing tool', uses:['Exploit known vulnerabilities','Generate custom payloads','Post-exploitation & pivoting','Automate security testing'], diff:5},
+  {icon:'👁️', name:'Nessus', category:'Vulnerability Scanner', desc:'Comprehensive vuln assessment', uses:['Scan for 65,000+ vulnerabilities','Audit configurations & compliance','Detect malware and botnets','Generate professional reports'], diff:3},
+  {icon:'🔬', name:'OpenVAS', category:'Vuln. Assessment', desc:'Open source security scanner', uses:['Full network vulnerability scans','Web application auditing','Configuration compliance checks','CVE-based vulnerability detection'], diff:3},
+  {icon:'🔍', name:'Autopsy', category:'Digital Forensics', desc:'Digital forensics platform', uses:['Recover deleted files & artifacts','Analyze browser history & emails','Perform timeline analysis','Extract mobile device data'], diff:4},
+  {icon:'🔨', name:'John the Ripper', category:'Password Cracker', desc:'Advanced password recovery tool', uses:['Crack password hashes offline','Support 100+ hash types','Dictionary and brute-force attacks','Audit password policy compliance'], diff:4},
+  {icon:'🛡️', name:'VirusTotal', category:'Malware Analysis', desc:'Multi-engine malware scanner', uses:['Scan files with 70+ AV engines','Analyze suspicious URLs','Check IP reputation','Get detailed threat intelligence'], diff:1},
+  {icon:'🕵️', name:'Aircrack-ng', category:'Wireless Security', desc:'Wi-Fi network security auditing', uses:['Capture and analyze Wi-Fi packets','Test WEP/WPA/WPA2 key strength','Detect rogue access points','Perform deauthentication attacks'], diff:4},
+  {icon:'🌐', name:'OWASP ZAP', category:'Web App Scanner', desc:'Automated web vulnerability scanner', uses:['Automated DAST scanning','Spider web apps for hidden content','Intercept and fuzz HTTP requests','Integrate into CI/CD pipelines'], diff:2}
+];
+
+const toolsGrid = document.getElementById('tools-grid');
+toolsData.forEach(t => {
+  const dots = Array.from({length:5},(_,i) => `<div class="diff-dot ${i<t.diff?'filled':''}"></div>`).join('');
+  toolsGrid.innerHTML += `
+    <div class="flip-wrapper reveal">
+      <div class="flip-card">
+        <div class="flip-front">
+          <div class="flip-tool-icon">${t.icon}</div>
+          <div class="flip-tool-name">${t.name}</div>
+          <div class="flip-tool-category">${t.category}</div>
+          <div class="flip-hint">Hover to reveal capabilities ↗</div>
+        </div>
+        <div class="flip-back">
+          <div class="flip-back-title">${t.icon} ${t.name}</div>
+          <div style="font-size:0.78rem;color:#4a7a9a;margin-bottom:1rem;">${t.desc}</div>
+          <ul class="flip-uses">
+            ${t.uses.map(u=>`<li>${u}</li>`).join('')}
+          </ul>
+          <div class="flip-diff">
+            <span class="diff-label">DIFFICULTY</span>
+            <div class="diff-dots">${dots}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+});
+
+/* ══════════════════════════════════════════════
+   EMERGENCY HELP DATA
+══════════════════════════════════════════════ */
+const emergencies = [
+  {
+    id:'gmail', icon:'📧', title:'Gmail Account Hacked',
+    immediate:['Change your password immediately from a secure device','Enable 2-Step Verification on your Google account','Check for unauthorized access in Security > Recent Security Events','Revoke all app permissions under Third-Party Access','Sign out of all sessions via Google Account Security'],
+    recovery:['Recover access via recovery email/phone','Check and remove suspicious email filters','Review sent mail for phishing messages sent from your account','Notify contacts that your email was compromised','Set up backup codes for your 2FA'],
+    prevention:['Use a strong unique password (15+ characters)','Enable 2FA with an authenticator app','Never sign in on shared/public computers','Regularly audit connected apps']
+  },
+  {
+    id:'instagram', icon:'📸', title:'Instagram Account Hacked',
+    immediate:['Request a login link to your email/phone from Instagram','Tap "Need more help?" if unable to access','Check email from security@mail.instagram.com','Report the hack via Instagram Help Center','Document and screenshot any unauthorized posts'],
+    recovery:['Once recovered: change password, enable 2FA','Remove all third-party apps you don\'t recognize','Check linked accounts (Facebook, email)','Review and remove suspicious login locations','Alert followers not to trust recent suspicious posts'],
+    prevention:['Use Instagram\'s built-in Two-Factor Authentication','Never use third-party apps claiming extra followers','Don\'t share login via DM or untrusted sites','Use a unique, strong password']
+  },
+  {
+    id:'whatsapp', icon:'💬', title:'WhatsApp Account Hacked',
+    immediate:['Re-register your number on WhatsApp on your device','Enter the 6-digit SMS verification code','If prompted, enter your PIN (Two-Step Verification)','The hacker\'s session will be logged out immediately','Alert your WhatsApp groups about potential scams'],
+    recovery:['Enable Two-Step Verification with a PIN','Check linked devices and remove unknowns','Review recent messages for sensitive info sent','Change passwords on accounts mentioned in chats'],
+    prevention:['Never share your 6-digit WhatsApp code with ANYONE','Enable Two-Step Verification in Settings','Be cautious of messages saying "send me your OTP"','Lock WhatsApp with biometrics/PIN']
+  },
+  {
+    id:'malware', icon:'🦠', title:'Malware Infection',
+    immediate:['Disconnect from the internet immediately','Do not shut down (may trigger malware actions)','Take a photo/note of any ransom messages','Boot from a USB rescue disk if possible','Do NOT pay any ransom demands'],
+    recovery:['Run reputable antivirus in Safe Mode','Use Malwarebytes, ESET Online Scanner, or Kaspersky','Reinstall OS if infection is severe','Restore files from clean backup (before infection)','Change ALL passwords from a different, clean device'],
+    prevention:['Keep OS and software updated','Install reputable antivirus software','Never open suspicious email attachments','Maintain regular offline backups (3-2-1 rule)','Avoid pirated software and untrusted downloads']
+  },
+  {
+    id:'phishing', icon:'🎣', title:'Phishing Attack',
+    immediate:['Do NOT click any links in the suspicious email/SMS','Do NOT provide any credentials or OTPs','If you already clicked: change affected passwords NOW','Enable 2FA on compromised accounts immediately','Check for unauthorized transactions if banking involved'],
+    recovery:['Report phishing to: report@phishing.gov.in (India)','Notify your bank if financial info was shared','Check "Have I Been Pwned" for your email','Scan your device for malware','Alert colleagues if corporate email was targeted'],
+    prevention:['Verify sender email addresses carefully','Hover over links before clicking to see true URL','Banks never ask for OTP/password via email/phone','Use email filtering solutions','Enable anti-phishing in your browser']
+  },
+  {
+    id:'ransomware', icon:'🔒', title:'Ransomware Attack',
+    immediate:['Isolate the infected device from network IMMEDIATELY','Power off adjacent devices on the same network','Document the ransom note (screenshot/photo)','Do NOT pay the ransom — no guarantee of recovery','Report to CERT-In (India) or local cybercrime unit'],
+    recovery:['Check NoMoreRansom.org for free decryptors','Restore from last clean backup','Rebuild system from scratch if no backup','Scan all drives before reconnecting','File a complaint at cybercrime.gov.in'],
+    prevention:['Maintain offline/cloud backups (3-2-1 rule)','Disable RDP if not needed (common attack vector)','Apply security patches immediately','Segment your network','Train staff to recognize phishing (common infection vector)']
+  }
+];
+
+const emGrid = document.getElementById('emergency-grid');
+emergencies.forEach(e => {
+  emGrid.innerHTML += `
+    <div class="emergency-card reveal" onclick="showEmergency('${e.id}')">
+      <div class="em-icon">${e.icon}</div>
+      <div class="em-title">${e.title}</div>
+      <div class="em-desc">Click for immediate action steps, recovery guide, and prevention tips.</div>
+    </div>`;
+});
+
+function showEmergency(id){
+  const e = emergencies.find(x=>x.id===id);
+  const detail = document.getElementById('emergency-detail');
+  document.getElementById('emergency-content').innerHTML = `
+    <div style="background:rgba(10,2,5,0.98);border:1px solid rgba(255,51,68,0.4);border-radius:16px;padding:2rem;">
+      <h2 style="font-family:'Orbitron',monospace;color:#ff6677;margin-bottom:2rem;font-size:1.2rem;">${e.icon} ${e.title}</h2>
+      <div class="detail-section">
+        <div class="detail-header">⚡ IMMEDIATE ACTIONS</div>
+        <ul class="detail-steps">${e.immediate.map((s,i)=>`<li><span class="step-num">${String(i+1).padStart(2,'0')}</span><span>${s}</span></li>`).join('')}</ul>
+      </div>
+      <div class="detail-section">
+        <div class="detail-header" style="color:#ffaa00;">🔄 RECOVERY STEPS</div>
+        <ul class="detail-steps">${e.recovery.map((s,i)=>`<li><span class="step-num" style="color:#ffaa00">${String(i+1).padStart(2,'0')}</span><span>${s}</span></li>`).join('')}</ul>
+      </div>
+      <div class="detail-section">
+        <div class="detail-header" style="color:var(--green);">🛡️ PREVENTION TIPS</div>
+        <ul class="detail-steps">${e.prevention.map((s,i)=>`<li><span class="step-num" style="color:var(--green)">${String(i+1).padStart(2,'0')}</span><span>${s}</span></li>`).join('')}</ul>
+      </div>
+      <button class="analyze-btn" style="margin-top:1rem;" onclick="document.getElementById('emergency-detail').style.display='none'">CLOSE</button>
+    </div>
+  `;
+  detail.style.display = 'block';
+  detail.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ══════════════════════════════════════════════
+   RESOURCES DATA
+══════════════════════════════════════════════ */
+
+
+/* ══════════════════════════════════════════════
+   CONTACT FORM INTEGRATION
+══════════════════════════════════════════════ */
+function submitContact(){
+  const n = document.getElementById('contact-name').value;
+  const e = document.getElementById('contact-email').value;
+  const m = document.getElementById('contact-msg').value;
+  const status = document.getElementById('contact-status');
+  
+  if(!n||!e||!m){ 
+    status.style.display='block'; 
+    status.className='form-status'; 
+    status.style.background='rgba(255,51,68,0.1)'; 
+    status.style.border='1px solid rgba(255,51,68,0.3)'; 
+    status.style.color='#ff6677'; 
+    status.textContent='⚠️ Please fill in all fields.'; 
+    return; 
+  }
+  
+  // REPLACE THE LINK BELOW WITH YOUR GOOGLE WEB APP SCRIPT URL OR FORMSPREE ACTION URL
+  const webhookURL = "https://script.google.com/macros/s/AKfycbxpoBcfBi1gu4E5-uK8L5S5dx1z29-Nvy_V85JoXea5H9MmUtsckExW2684HGNcEa0bnA/exec";
+  
+  status.style.display='block';
+  status.className='form-status';
+  status.style.background='rgba(0,245,255,0.1)';
+  status.style.border='1px solid rgba(0,245,255,0.3)';
+  status.style.color='var(--cyan)';
+  status.textContent='📡 Transmitting secure packet...';
+
+fetch(webhookURL, {
+    method: "POST",
+    headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+    },
+    body: JSON.stringify({
+        name: n,
+        email: e,
+        message: m
+    })
+})
+.then(response => response.text())
+.then(result => {
+
+    status.className = "form-status form-success";
+    status.textContent = "✅ Message successfully recorded in Google Sheet!";
+
+    document.getElementById("contact-name").value = "";
+    document.getElementById("contact-email").value = "";
+    document.getElementById("contact-msg").value = "";
+
+})
+.catch(error => {
+
+    console.error(error);
+
+    status.className = "form-status";
+    status.style.color = "red";
+    status.textContent = "❌ Failed to send message.";
+
+});
+}
+
+/* ══════════════════════════════════════════════
+   EMAIL FILE ATTACHMENT — READER ENGINE
+══════════════════════════════════════════════ */
+
+// Lazy-load PDF.js from CDN only when a PDF is dropped
+function loadPdfJs(cb){
+  if(window.pdfjsLib){ cb(); return; }
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+  s.onload = () => {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    cb();
+  };
+  document.head.appendChild(s);
+}
+
+const PH_FILE_ICONS = {pdf:'📕', eml:'📧', msg:'📨', txt:'📄', html:'🌐', htm:'🌐', mht:'🗒️', mhtml:'🗒️'};
+let phAttachedFile = null;
+
+function phFileDragOver(e){
+  e.preventDefault();
+  document.getElementById('ph-file-drop').style.borderColor='var(--cyan)';
+  document.getElementById('ph-file-drop').style.background='rgba(0,245,255,0.05)';
+}
+function phFileDragLeave(){
+  document.getElementById('ph-file-drop').style.borderColor='rgba(0,245,255,0.18)';
+  document.getElementById('ph-file-drop').style.background='rgba(0,10,25,0.5)';
+}
+function phFileDrop(e){
+  e.preventDefault(); phFileDragLeave();
+  const f = e.dataTransfer.files[0];
+  if(f) phHandleFile(f);
+}
+
+function phHandleFile(file){
+  if(!file) return;
+  const maxMB = 20;
+  if(file.size > maxMB*1024*1024){
+    alert(`⚠️ File too large. Maximum size is ${maxMB} MB.`); return;
+  }
+  const ext = file.name.split('.').pop().toLowerCase();
+  const allowed = ['pdf','eml','msg','txt','html','htm','mht','mhtml'];
+  if(!allowed.includes(ext)){
+    alert(`⚠️ Unsupported file type ".${ext}".\nSupported: PDF, EML, MSG, TXT, HTML, MHT`); return;
+  }
+
+  phAttachedFile = file;
+  const bar = document.getElementById('ph-file-bar');
+  bar.style.display = 'flex';
+  document.getElementById('ph-file-icon').textContent = PH_FILE_ICONS[ext] || '📄';
+  document.getElementById('ph-file-name').textContent = file.name;
+  document.getElementById('ph-file-meta').textContent =
+    ext.toUpperCase() + ' · ' + (file.size < 1048576 ? (file.size/1024).toFixed(1)+' KB' : (file.size/1048576).toFixed(2)+' MB');
+  document.getElementById('ph-file-status').textContent = '✅ Ready to extract';
+  document.getElementById('ph-file-drop').style.borderColor='rgba(0,245,255,0.35)';
+
+  // Auto-extract text immediately so user can see what was pulled
+  phExtractAndFill(file, ext);
+}
+
+function phClearFile(){
+  phAttachedFile = null;
+  document.getElementById('ph-file-input').value = '';
+  document.getElementById('ph-file-bar').style.display = 'none';
+  document.getElementById('ph-extract-progress').style.display = 'none';
+  document.getElementById('ph-file-drop').style.borderColor = 'rgba(0,245,255,0.18)';
+  document.getElementById('ph-file-drop').style.background = 'rgba(0,10,25,0.5)';
+  document.getElementById('ph-file-label').innerHTML = 'Drop email file here or <span style="color:var(--cyan);">click to browse</span>';
+}
+
+function phShowProgress(msg){
+  const p = document.getElementById('ph-extract-progress');
+  p.style.display = 'block';
+  document.getElementById('ph-extract-msg').textContent = msg;
+}
+function phHideProgress(){ document.getElementById('ph-extract-progress').style.display='none'; }
+
+function phExtractAndFill(file, ext){
+  phShowProgress('⏳ Extracting text from file…');
+  document.getElementById('ph-file-status').textContent = '⏳ Extracting…';
+
+  if(ext === 'pdf'){
+    loadPdfJs(() => phExtractPdf(file));
+  } else {
+    // All text-based formats: eml, msg, txt, html, htm, mht, mhtml
+    const reader = new FileReader();
+    reader.onload = e => {
+      let raw = e.target.result;
+      // Strip HTML tags for html/mht types
+      if(['html','htm','mht','mhtml'].includes(ext)){
+        raw = phStripHtml(raw);
+      }
+      // For EML/MSG: try to parse common headers into fields
+      if(['eml','msg'].includes(ext)){
+        phParseEmlHeaders(raw);
+      } else {
+        phFillBody(raw);
+      }
+    };
+    reader.onerror = () => { phShowProgress('❌ Could not read file.'); };
+    reader.readAsText(file, 'utf-8');
+  }
+}
+
+function phExtractPdf(file){
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const typedArray = new Uint8Array(e.target.result);
+      const pdf = await pdfjsLib.getDocument({data: typedArray}).promise;
+      let allText = '';
+      for(let p = 1; p <= pdf.numPages; p++){
+        const page = await pdf.getPage(p);
+        const content = await page.getTextContent();
+        allText += content.items.map(i => i.str).join(' ') + '\n';
+      }
+      if(!allText.trim()){
+        phShowProgress('⚠️ PDF has no extractable text (may be a scanned image). Please type/paste the content manually.');
+        document.getElementById('ph-file-status').textContent = '⚠️ No text found';
+        return;
+      }
+      phFillBody(allText);
+      phShowProgress(`✅ Extracted ${allText.trim().split(/\s+/).length} words from ${pdf.numPages} page(s)`);
+      document.getElementById('ph-file-status').textContent = '✅ Text extracted';
+      setTimeout(phHideProgress, 4000);
+    } catch(err){
+      phShowProgress('❌ PDF read error: ' + err.message);
+      document.getElementById('ph-file-status').textContent = '❌ Failed';
+    }
+  };
+  reader.onerror = () => phShowProgress('❌ Could not read PDF.');
+  reader.readAsArrayBuffer(file);
+}
+
+function phParseEmlHeaders(raw){
+  // Extract From:
+  const fromM = raw.match(/^From:\s*(.+)/mi);
+  const subM  = raw.match(/^Subject:\s*(.+)/mi);
+  if(fromM && fromM[1].trim() && !document.getElementById('ph-sender').value.trim()){
+    document.getElementById('ph-sender').value = fromM[1].trim();
+  }
+  if(subM && subM[1].trim() && !document.getElementById('ph-subject').value.trim()){
+    document.getElementById('ph-subject').value = subM[1].trim();
+  }
+  // Strip MIME headers, keep body
+  let body = raw.replace(/^([\w-]+:\s*.+\r?\n)+/m, '').trim();
+  // Decode quoted-printable basics
+  body = body.replace(/=\r?\n/g,'').replace(/=([0-9A-Fa-f]{2})/g,
+    (_,h) => String.fromCharCode(parseInt(h,16)));
+  phFillBody(body);
+}
+
+function phStripHtml(html){
+  // Remove scripts/styles then strip all tags
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi,'')
+    .replace(/<style[\s\S]*?<\/style>/gi,'')
+    .replace(/<[^>]+>/g,' ')
+    .replace(/&nbsp;/g,' ').replace(/&amp;/g,'&')
+    .replace(/&lt;/g,'<').replace(/&gt;/g,'>')
+    .replace(/&quot;/g,'"')
+    .replace(/\s{3,}/g,'\n\n').trim();
+}
+
+function phFillBody(text){
+  const textarea = document.getElementById('ph-body');
+  // Append to existing text if already has content, else replace
+  if(textarea.value.trim()){
+    textarea.value = textarea.value.trim() + '\n\n--- EXTRACTED FROM FILE ---\n\n' + text.trim();
+  } else {
+    textarea.value = text.trim();
+  }
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  phShowProgress(`✅ ${words} words extracted — ready to analyze`);
+  document.getElementById('ph-file-status').textContent = '✅ Text extracted';
+  setTimeout(phHideProgress, 4000);
+}
+
+/* ══════════════════════════════════════════════
+   PHISHING EMAIL DETECTOR ENGINE
+══════════════════════════════════════════════ */
+let phishingReportData = null;
+
+const PHISH_KEYWORDS = [
+  'verify your account','confirm your identity','click here immediately','urgent action required',
+  'your account has been suspended','account will be deleted','update your payment','unusual activity',
+  'you have won','claim your prize','limited time offer','act now','expires in','within 24 hours',
+  'within 48 hours','failure to act','immediate response','validate your','reset your password',
+  'enter your password','provide your credentials','bank account details','social security',
+  'dear customer','dear user','dear valued','congratulations you','selected as a winner',
+  'nigerian prince','inheritance','million dollars','transfer funds','gift card','itunes card',
+  'amazon gift','western union','wire transfer','bitcoin payment','cryptocurrency','your parcel',
+  'delivery failed','package held','customs fee','tax refund','irs notice','fbi warning',
+  'click the link below','login here','verify here','confirm here','unauthorized access',
+  'security alert','suspicious login','unrecognized device'
+];
+
+const SUSPICIOUS_DOMAINS = [
+  'xyz','tk','ml','ga','cf','gq','pw','top','club','icu','cyou','buzz',
+  'bit.ly','tinyurl','t.co','goo.gl','ow.ly','buff.ly','is.gd','rb.gy','cutt.ly','short.io'
+];
+
+const DANGEROUS_ATTACHMENTS = ['.exe','.bat','.cmd','.ps1','.vbs','.js','.jar','.scr','.msi','.zip','.rar','.docm','.xlsm','.pptm'];
+
+function runPhishingAnalysis() {
+  const senderField = (document.getElementById('ph-sender').value || '').trim();
+  const subject     = (document.getElementById('ph-subject').value || '').trim();
+  const body        = (document.getElementById('ph-body').value || '').trim();
+
+  if (!body && !senderField && !subject) {
+    alert('⚠️ Please paste at least an email body or subject to analyze.');
+    return;
+  }
+
+  // ══════════════════════════════════════════════════
+  // EMAIL REGEX
+  // ══════════════════════════════════════════════════
+  const EMAIL_RE = /[\w.+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,6}/g;
+
+  // ── Extract first email from a named header line ──
+  // Supports: "From: email", "From: Name <email>", "From: Name<email>"
+  function getHeader(text, headerName) {
+    const escaped = headerName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+    // angle-bracket: From: Name <email@x.com>
+    const r1 = new RegExp('^[ \\t]*' + escaped + '[ \\t]*:.*?<([\\w.+\\-]+@[\\w.\\-]+\\.[a-zA-Z]{2,6})>', 'im');
+    const m1 = text.match(r1);
+    if (m1) return m1[1].toLowerCase().trim();
+    // plain: From: email@x.com  (possibly followed by date/text)
+    const r2 = new RegExp('^[ \\t]*' + escaped + '[ \\t]*:[ \\t]*([\\w.+\\-]+@[\\w.\\-]+\\.[a-zA-Z]{2,6})', 'im');
+    const m2 = text.match(r2);
+    if (m2) return m2[1].toLowerCase().trim();
+    return '';
+  }
+
+  // ── Normalise extracted PDF / printed text ──
+  // Gmail "Print to PDF" always puts the logged-in user's name+email at the very top
+  // like: "Darshan Parmar <darshanparmar5812@gmail.com>"
+  // We need to strip that line BEFORE searching for sender, otherwise it's mistaken as From.
+  //
+  // Pattern: The Gmail PDF header bar looks like one of:
+  //   "Name <email>"          on its own line at the very top
+  //   "Name Surname <email>"
+  // It appears BEFORE any "From:" / "To:" label line.
+  // Strategy: find where the first real email-client label (From:, To:, Subject:) appears,
+  // and build a "headerBlock" from that point onwards for structured parsing.
+  // For unstructured body text, we keep the full body.
+
+  // Find the position of the earliest structured header label
+  const headerLabels = ['From:', 'To:', 'Cc:', 'Subject:', 'Date:', 'Reply-To:', 'Delivered-To:',
+                        'Return-Path:', 'Received:', 'X-Sender:', 'Naukri', 'Message-ID:'];
+  let headerStart = body.length;
+  for (const lbl of headerLabels) {
+    const idx = body.toLowerCase().indexOf(lbl.toLowerCase());
+    if (idx !== -1 && idx < headerStart) headerStart = idx;
+  }
+  // structuredPart = the portion from first label onwards (contains From:/To: etc.)
+  // prefixPart     = everything before that (the Gmail chrome / branding text)
+  const structuredPart = body.slice(headerStart);
+  const prefixPart     = body.slice(0, headerStart);
+
+  // ══════════════════════════════════════════════════
+  // STEP 1 — DETECT SENDER
+  // ══════════════════════════════════════════════════
+  let senderEmail = '';
+
+  // S1. User typed something explicitly in the Sender field UI
+  if (senderField) {
+    const m = senderField.match(EMAIL_RE);
+    if (m) { senderEmail = m[0].toLowerCase(); }
+    else if (senderField.includes('@')) { senderEmail = senderField.toLowerCase(); }
+  }
+
+  // S2. "From:" header in the structured part (most reliable)
+  if (!senderEmail) senderEmail = getHeader(structuredPart, 'From');
+
+  // S3. Gmail printed email layout:
+  // After the subject line, the sender appears as "Name <email>  Date"
+  // Pattern: line that contains an email AND a date-like string (Thu, Mon, etc.) = sender line
+  if (!senderEmail) {
+    const datePattern = /\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun),?\s+\w+\s+\d+/i;
+    for (const line of structuredPart.split('\n')) {
+      if (datePattern.test(line)) {
+        const emails = line.match(EMAIL_RE);
+        if (emails) { senderEmail = emails[0].toLowerCase(); break; }
+      }
+    }
+  }
+
+  // S4. Reply-To / X-Sender / Return-Path in structured part
+  if (!senderEmail) senderEmail = getHeader(structuredPart, 'Reply-To');
+  if (!senderEmail) senderEmail = getHeader(structuredPart, 'X-Sender');
+  if (!senderEmail) senderEmail = getHeader(structuredPart, 'Return-Path');
+
+  // S5. Last resort: scan structured part line by line, skip To/Cc/Delivered-To lines
+  //     AND skip any line that also appears in the prefix (Gmail chrome / logged-in user bar)
+  if (!senderEmail) {
+    // Collect all emails that appeared in the prefix (= the logged-in Gmail user's info)
+    const prefixEmails = new Set((prefixPart.match(EMAIL_RE) || []).map(e => e.toLowerCase()));
+    const skipLine = /^[ \t]*(to|cc|bcc|delivered-to|x-forwarded-to|x-original-to|received)[ \t]*:/i;
+    for (const line of structuredPart.split('\n')) {
+      if (skipLine.test(line)) continue;
+      const found = (line.match(EMAIL_RE) || []).map(e => e.toLowerCase());
+      // Skip emails that came from the prefix block (= logged-in user)
+      const candidate = found.find(e => !prefixEmails.has(e));
+      if (candidate) { senderEmail = candidate; break; }
+    }
+  }
+
+  // ══════════════════════════════════════════════════
+  // STEP 2 — DETECT RECIPIENT
+  // ══════════════════════════════════════════════════
+  let recipientEmail = '';
+
+  // R1. "To:" header in structured part
+  recipientEmail = getHeader(structuredPart, 'To');
+
+  // R2. Delivered-To / X-Original-To (Gmail routing headers)
+  if (!recipientEmail) recipientEmail = getHeader(structuredPart, 'Delivered-To');
+  if (!recipientEmail) recipientEmail = getHeader(structuredPart, 'X-Original-To');
+  if (!recipientEmail) recipientEmail = getHeader(structuredPart, 'X-Forwarded-To');
+
+  // R3. Gmail PDF top bar — the very first email in the prefix is ALWAYS the logged-in user
+  //     who is reading/printing the email = the RECIPIENT
+  if (!recipientEmail) {
+    const prefixFound = (prefixPart.match(EMAIL_RE) || []).map(e => e.toLowerCase());
+    if (prefixFound.length > 0) recipientEmail = prefixFound[0];
+  }
+
+  // R4. Cc: as final fallback
+  if (!recipientEmail) recipientEmail = getHeader(structuredPart, 'Cc');
+
+  // R5. Any email in body different from sender
+  if (!recipientEmail) {
+    const allInBody = (body.match(EMAIL_RE) || []).map(e => e.toLowerCase());
+    recipientEmail = allInBody.find(e => e !== senderEmail) || '';
+  }
+
+  // Guard: if they ended up equal, clear recipient
+  if (senderEmail && senderEmail === recipientEmail) recipientEmail = '';
+
+  // ── All unique email addresses found anywhere in the body ──
+  const allEmails = [...new Set((body.match(EMAIL_RE) || []).map(e => e.toLowerCase()))];
+
+  // ══════════════════════════════════════════════════
+  // STEP 3 — BUILD fullText FOR SCORING
+  // Use raw senderField (not derived senderEmail) + subject + body
+  // so user's typed input contributes to keyword matching too
+  // ══════════════════════════════════════════════════
+  const fullText = [senderField, subject, body].join(' ').toLowerCase();
+
+  let score = 0;
+  const threats = [];
+  const whyReasons = [];
+
+  // ── 1. Sender domain analysis ──
+  const senderDomain = senderEmail.includes('@') ? senderEmail.split('@')[1].toLowerCase() : '';
+
+  if (senderDomain) {
+    // 1a. Suspicious TLD check
+    const suspTLDs = SUSPICIOUS_DOMAINS.slice(0, 10); // ['xyz','tk','ml',...]
+    if (suspTLDs.some(tld => senderDomain === tld || senderDomain.endsWith('.' + tld))) {
+      score += 25;
+      threats.push(`Suspicious sender domain TLD: <b>${senderDomain}</b>`);
+      whyReasons.push(`Sender domain "<b>${senderDomain}</b>" uses a high-risk / free TLD frequently associated with phishing campaigns.`);
+    }
+
+    // 1b. URL shortener used as sending domain
+    const shortenerList = SUSPICIOUS_DOMAINS.slice(10); // ['bit.ly','tinyurl',...]
+    if (shortenerList.some(s => senderDomain === s || senderDomain.endsWith('.' + s))) {
+      score += 20;
+      threats.push(`URL shortener used as sender domain: <b>${senderDomain}</b>`);
+      whyReasons.push('Using a URL shortener as a sender domain hides the true origin of the email.');
+    }
+
+    // 1c. Excessive numbers in domain (e.g. paypal-security123.net)
+    if (/\d{3,}/.test(senderDomain)) {
+      score += 10;
+      threats.push('Sender domain contains excessive numbers — spoofing pattern');
+      whyReasons.push('Phishers generate domains with many numbers to bypass brand-name filters.');
+    }
+
+    // 1d. Look-alike character substitution (e.g. paypa1, amaz0n, g00gle)
+    const lookalikePairs = [
+      ['paypal','paypa1'],['amazon','amaz0n'],['google','g00gle'],
+      ['microsoft','micros0ft'],['netflix','netf1ix'],['apple','app1e'],
+      ['bank','b4nk'],['facebook','faceb00k'],['instagram','1nstagram'],
+      ['support','supp0rt'],['secure','secur3'],['account','acc0unt']
+    ];
+    lookalikePairs.forEach(([real, fake]) => {
+      if (senderDomain.includes(fake) || fullText.includes(fake)) {
+        score += 20;
+        threats.push(`Brand look-alike spoofing: "<b>${fake}</b>" impersonating <b>${real}</b>`);
+        whyReasons.push(`"<b>${fake}</b>" uses character substitution to visually mimic "<b>${real}</b>" and deceive the reader.`);
+      }
+    });
+
+    // 1e. Hyphenated brand-impersonation (e.g. paypal-secure.com, amazon-support.net)
+    const brands = ['paypal','amazon','google','microsoft','netflix','apple','facebook','instagram','bank','support','secure','verify','login','account'];
+    brands.forEach(brand => {
+      if ((senderDomain.startsWith(brand + '-') || senderDomain.includes('-' + brand)) && !senderDomain.includes(brand + '.')) {
+        score += 15;
+        threats.push(`Hyphenated brand impersonation domain: <b>${senderDomain}</b>`);
+        whyReasons.push(`Sender domain contains "${brand}" with hyphens — a common trick to appear as an official "${brand}" domain.`);
+      }
+    });
+  }
+
+  // ── 2. Phishing keywords ──
+  const foundKeywords = PHISH_KEYWORDS.filter(k => fullText.includes(k));
+  if (foundKeywords.length > 0) {
+    score += Math.min(foundKeywords.length * 6, 30);
+    threats.push(`${foundKeywords.length} phishing keyword(s) detected: <b>${foundKeywords.slice(0,4).join(', ')}${foundKeywords.length>4?'…':''}</b>`);
+    whyReasons.push(`Found ${foundKeywords.length} known phishing trigger phrases designed to manipulate the recipient psychologically.`);
+  }
+
+  // ── 3. Urgency language ──
+  const urgencyPhrases = ['urgent','immediately','asap','right now','act now','don\'t delay','expire','deadline','last chance','final notice','today only','respond now','limited time'];
+  const urgencyFound = urgencyPhrases.filter(u => fullText.includes(u));
+  if (urgencyFound.length >= 2) {
+    score += 15;
+    threats.push(`High urgency language (${urgencyFound.length} instances): <b>${urgencyFound.slice(0,3).join(', ')}</b>`);
+    whyReasons.push('Multiple urgency phrases create artificial pressure designed to bypass rational thinking.');
+  }
+
+  // ── 4. Credential / PII requests ──
+  const credTerms = ['password','username','credit card','debit card','card number','cvv','pin','otp','ssn','social security','bank account','account number','date of birth','mother\'s maiden','verify your identity','confirm your details'];
+  const credFound = credTerms.filter(c => fullText.includes(c));
+  if (credFound.length > 0) {
+    score += Math.min(credFound.length * 8, 25);
+    threats.push(`Credential / PII request detected: <b>${credFound.slice(0,3).join(', ')}</b>`);
+    whyReasons.push('Legitimate organizations NEVER request passwords, OTPs, PINs or card details via email. This is a definitive phishing signal.');
+  }
+
+  // ── 5. URL analysis ──
+  const urlRegex = /https?:\/\/[^\s"'<>\]\)\}]+/gi;
+  const urls = [...new Set(body.match(urlRegex) || [])];
+  const httpUrls    = urls.filter(u => u.startsWith('http://'));
+  const shortUrls   = urls.filter(u => SUSPICIOUS_DOMAINS.slice(10).some(d => u.toLowerCase().includes(d)));
+  const suspTLDUrls = urls.filter(u => { try { const h = new URL(u).hostname.toLowerCase(); return SUSPICIOUS_DOMAINS.slice(0,10).some(d => h === d || h.endsWith('.' + d)); } catch(e){ return false; }});
+  const ipUrls      = urls.filter(u => /^https?:\/\/\d{1,3}(\.\d{1,3}){3}/.test(u));
+  if (httpUrls.length)    { score += 15; threats.push(`${httpUrls.length} insecure HTTP link(s) — no encryption`); whyReasons.push('HTTP links are unencrypted. All legitimate services use HTTPS.'); }
+  if (shortUrls.length)   { score += 12; threats.push(`${shortUrls.length} shortened URL(s) — true destination hidden`); whyReasons.push('URL shorteners are used to disguise phishing page addresses from email filters.'); }
+  if (suspTLDUrls.length) { score += 15; threats.push(`${suspTLDUrls.length} URL(s) pointing to suspicious TLD domains`); whyReasons.push('URLs on cheap/disposable TLDs are a hallmark of temporary phishing infrastructure.'); }
+  if (ipUrls.length)      { score += 20; threats.push(`${ipUrls.length} URL(s) using raw IP address — no domain name`); whyReasons.push('Raw IP addresses in links bypass domain reputation checks and are almost exclusively malicious.'); }
+
+  // ── 6. Dangerous attachment mentions ──
+  const foundAttachments = DANGEROUS_ATTACHMENTS.filter(ext => fullText.includes(ext));
+  if (foundAttachments.length) {
+    score += 20;
+    threats.push(`Dangerous file type(s) mentioned: <b>${foundAttachments.join(', ')}</b>`);
+    whyReasons.push('Executable and macro-enabled attachments are the primary malware delivery vector in phishing emails.');
+  }
+
+  // ── 7. Grammar / formatting anomalies ──
+  const grammarFlags = [];
+  if ((body.match(/  +/g)||[]).length > 3) grammarFlags.push('excessive double-spacing');
+  if ((body.match(/!{2,}/g)||[]).length > 1) grammarFlags.push('multiple consecutive exclamation marks');
+  const capsWords = (body.match(/\b[A-Z]{4,}\b/g)||[]).filter(w => !['HTTP','HTTPS','FAQ','PIN','OTP','URL','PDF','FBI','IRS','ID','URGENT','FREE','ALERT','WARNING'].includes(w));
+  if (capsWords.length > 4) grammarFlags.push(`suspicious ALL-CAPS words (${capsWords.slice(0,3).join(', ')})`);
+  if ((body.match(/[^\x00-\x7F]/g)||[]).length > 5) grammarFlags.push('non-ASCII / unusual characters');
+  if (grammarFlags.length > 0) {
+    score += Math.min(grammarFlags.length * 5, 15);
+    threats.push(`Grammar / formatting anomalies: ${grammarFlags.join('; ')}`);
+    whyReasons.push('Formatting anomalies are common in machine-generated or poorly translated phishing emails.');
+  }
+
+  // ── 8. Generic / impersonal greeting ──
+  const genericGreetings = ['dear customer','dear user','dear valued customer','dear account holder','dear member','hello user','to whom it may concern','dear sir','dear madam','dear sir/madam'];
+  if (genericGreetings.some(g => fullText.includes(g))) {
+    score += 8;
+    threats.push('Generic impersonal greeting detected');
+    whyReasons.push('Legitimate companies address you by name. Generic greetings indicate mass-blast phishing campaigns.');
+  }
+
+  // Cap score at 100
+  score = Math.min(score, 100);
+
+  // ── Risk Level ──
+  let riskLabel, riskColor, badgeClass, phishingType, recommendations;
+  if (score === 0) {
+    riskLabel = 'SAFE'; riskColor = '#00ff88';
+    phishingType = 'No phishing category identified — email appears clean.';
+    recommendations = ['✅ This email appears safe based on heuristic analysis.', '✅ Always maintain a habit of verifying unexpected emails regardless.', '✅ Keep your email client updated with the latest security patches.'];
+  } else if (score < 25) {
+    riskLabel = 'LOW RISK'; riskColor = '#00ccff';
+    phishingType = 'Mild Suspicious Content — possibly marketing or newsletter with aggressive language.';
+    recommendations = ['⚠️ Exercise caution before clicking any links.', '⚠️ Verify the sender\'s domain matches the company\'s official domain.', '⚠️ Do not provide any personal information.', '✅ Scan any attachments with antivirus before opening.'];
+  } else if (score < 55) {
+    riskLabel = 'MEDIUM RISK'; riskColor = '#ffaa00';
+    phishingType = detectPhishingType(fullText, foundKeywords, credFound, urgencyFound);
+    recommendations = ['🚫 Do NOT click any links in this email.', '🚫 Do NOT open any attachments.', '⚠️ Report the email as phishing in your email client.', '⚠️ Verify the claimed action by contacting the company directly.', '🛡️ Enable 2FA on any accounts mentioned in the email.', '🛡️ Check your accounts for unauthorized access.'];
+  } else {
+    riskLabel = 'HIGH RISK'; riskColor = '#ff3344';
+    phishingType = detectPhishingType(fullText, foundKeywords, credFound, urgencyFound);
+    recommendations = ['🚨 DANGER — Do NOT interact with this email in any way.', '🚫 Do NOT click any links or reply.', '🚫 Do NOT open any attachments.', '🗑️ Delete this email immediately and empty your trash.', '📢 Report to your IT department / email provider as phishing.', '📢 Report to cybercrime.gov.in or report@phishing.gov.in (India).', '🔐 Change passwords on any accounts this email claims to be from.', '🛡️ Run a malware scan on your device.', '📞 If financial info was shared, contact your bank immediately.'];
+  }
+
+  // ── Extract remaining intel ──
+  const allPhones       = [...new Set((body.match(/(\+?\d[\d\s\-().]{7,14}\d)/g)||[]))].slice(0,5);
+  const allAttachMentions = DANGEROUS_ATTACHMENTS.filter(e => fullText.includes(e));
+
+  // ── Email Statistics ──
+  const wordCount  = body.trim().split(/\s+/).filter(Boolean).length;
+  const charCount  = body.length;
+  const lineCount  = body.split('\n').length;
+  const linkCount  = urls.length;
+  const emailCount = allEmails.length;
+
+  // ── Store report data for download ──
+  phishingReportData = {score, riskLabel, threats, whyReasons, phishingType, recommendations,
+    senderEmail, recipientEmail, subject, allEmails, allPhones, urls, allAttachMentions, wordCount, charCount, linkCount, foundKeywords};
+
+  // ── RENDER RESULTS ──
+  document.getElementById('ph-results').style.display = 'block';
+  document.getElementById('ph-download-btn').style.display = 'inline-flex';
+
+  // Score ring
+  const circumference = 289;
+  const offset = circumference - (score / 100) * circumference;
+  const ring = document.getElementById('ph-ring-circle');
+  ring.style.strokeDashoffset = offset;
+  ring.style.stroke = riskColor;
+  document.getElementById('ph-score-num').textContent = score + '%';
+  document.getElementById('ph-score-num').style.color = riskColor;
+
+  // Needle
+  document.getElementById('ph-risk-needle').style.left = score + '%';
+
+  // Verdict
+  document.getElementById('ph-verdict').textContent = riskLabel;
+  document.getElementById('ph-verdict').style.color = riskColor;
+  document.getElementById('ph-category').textContent = score === 0 ? '✅ No threats detected' : `${threats.length} threat signal(s) found`;
+
+  // Risk badge
+  const badge = document.getElementById('ph-risk-badge');
+  badge.textContent = riskLabel;
+  const bdg = score===0 ? 'background:rgba(0,255,136,0.15);color:#00ff88;border:1px solid rgba(0,255,136,0.4);'
+    : score<25 ? 'background:rgba(0,204,255,0.12);color:#00ccff;border:1px solid rgba(0,204,255,0.35);'
+    : score<55 ? 'background:rgba(255,170,0,0.12);color:#ffaa00;border:1px solid rgba(255,170,0,0.35);'
+    : 'background:rgba(255,51,68,0.15);color:#ff3344;border:1px solid rgba(255,51,68,0.4);';
+  badge.setAttribute('style', badge.getAttribute('style') + bdg);
+  document.getElementById('ph-threat-count').textContent = threats.length + ' threat signal(s) identified';
+
+  // Threats list
+  document.getElementById('ph-threats-list').innerHTML = threats.length === 0
+    ? '<div style="color:var(--green);font-size:0.85rem;">✅ No threats detected. Email appears clean.</div>'
+    : threats.map(t => `<div style="display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,51,68,0.08);">
+        <span style="color:#ff6677;flex-shrink:0;font-size:1rem;">⚠</span>
+        <span style="font-size:0.83rem;color:#c8d8e8;">${t}</span>
+      </div>`).join('');
+
+  // Intel
+  document.getElementById('ph-intel').innerHTML = `
+    <div style="margin-bottom:6px;"><span style="color:var(--cyan);">Sender (From):</span> <span style="color:#ff8888;">${senderEmail || '<span style="color:#3a6a8a;">Not detected</span>'}</span></div>
+    <div style="margin-bottom:6px;"><span style="color:var(--cyan);">Recipient (To):</span> <span style="color:#c8e0f0;">${recipientEmail || '<span style="color:#3a6a8a;">Not detected</span>'}</span></div>
+    <div style="margin-bottom:6px;"><span style="color:var(--cyan);">Subject:</span> <span style="color:#c8e0f0;">${subject || '<span style="color:#3a6a8a;">Not provided</span>'}</span></div>
+    <div style="margin-bottom:6px;"><span style="color:var(--cyan);">All emails in body:</span> ${allEmails.length ? allEmails.map(e=>`<span style="color:#c8e0f0;">${e}</span>`).join(', ') : '<span style="color:#3a6a8a;">None</span>'}</div>
+    <div style="margin-bottom:6px;"><span style="color:var(--cyan);">URLs found:</span> ${urls.length}</div>
+    ${urls.slice(0,4).map(u=>`<div style="font-size:0.75rem;color:#ffaa00;word-break:break-all;padding-left:8px;">→ ${u.length>60?u.slice(0,60)+'…':u}</div>`).join('')}
+    <div style="margin-bottom:6px;margin-top:6px;"><span style="color:var(--cyan);">Phones:</span> ${allPhones.length ? allPhones.join(', ') : '<span style="color:#3a6a8a;">None detected</span>'}</div>
+    <div><span style="color:var(--cyan);">Attachments:</span> ${allAttachMentions.length ? allAttachMentions.join(', ') : '<span style="color:#3a6a8a;">None mentioned</span>'}</div>
+  `;
+
+  // Highlighted body
+  let highlighted = escapeHtml(body);
+  // highlight phishing keywords
+  foundKeywords.forEach(kw => {
+    const re = new RegExp('(' + escapeRegex(kw) + ')', 'gi');
+    highlighted = highlighted.replace(re, '<mark style="background:rgba(255,51,68,0.25);color:#ff8899;border-radius:3px;padding:0 2px;">$1</mark>');
+  });
+  // highlight URLs
+  urls.forEach(url => {
+    const re = new RegExp('(' + escapeRegex(escapeHtml(url)) + ')', 'g');
+    highlighted = highlighted.replace(re, '<span style="background:rgba(255,170,0,0.15);color:#ffcc44;border-radius:3px;padding:0 2px;text-decoration:underline;">$1</span>');
+  });
+  // highlight urgency
+  ['urgent','immediately','asap','expire','deadline','act now','last chance','final notice','within 24','within 48'].forEach(kw => {
+    const re = new RegExp('(' + escapeRegex(kw) + ')', 'gi');
+    highlighted = highlighted.replace(re, '<span style="background:rgba(255,100,0,0.2);color:#ff8844;border-radius:3px;padding:0 2px;">$1</span>');
+  });
+  document.getElementById('ph-highlighted').innerHTML = highlighted || '<span style="color:#2a4a6a;">No body content provided.</span>';
+
+  // Why suspicious
+  document.getElementById('ph-why').innerHTML = whyReasons.length
+    ? whyReasons.map(r=>`<div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,0,170,0.06);"><span style="color:#ff00aa;flex-shrink:0;">▹</span><span>${r}</span></div>`).join('')
+    : '<div style="color:var(--green);">✅ No suspicious patterns were detected in this email.</div>';
+
+  // Phishing category
+  document.getElementById('ph-phish-type').innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:8px;"><span style="color:var(--cyan);">▹</span><span>${phishingType}</span></div>`;
+
+  // Stats
+  document.getElementById('ph-stats').innerHTML = `
+    <div>Word Count: <span style="color:var(--cyan);">${wordCount}</span></div>
+    <div>Characters: <span style="color:var(--cyan);">${charCount}</span></div>
+    <div>Lines: <span style="color:var(--cyan);">${lineCount}</span></div>
+    <div>Links Found: <span style="color:var(--cyan);">${linkCount}</span></div>
+    <div>Email Addrs: <span style="color:var(--cyan);">${emailCount}</span></div>
+    <div>Keywords Hit: <span style="color:${score>=55?'#ff6677':'#ffaa00'};">${foundKeywords.length}</span></div>
+  `;
+
+  // Recommendations
+  document.getElementById('ph-recs').innerHTML = recommendations
+    .map(r=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid rgba(0,255,136,0.06);">
+      <span style="color:var(--green);flex-shrink:0;">▹</span>
+      <span>${r}</span>
+    </div>`).join('');
+
+  // Scroll to results
+  document.getElementById('ph-results').scrollIntoView({behavior:'smooth',block:'start'});
+  initReveal();
+}
+
+function detectPhishingType(text, keywords, credFound, urgency) {
+  if (['bank account','credit card','debit card','wire transfer','western union','bitcoin','account number'].some(k=>text.includes(k))) return '💰 Financial Fraud / Bank Phishing — targeting banking credentials or payment data.';
+  if (['package','parcel','delivery','customs','shipment','track your'].some(k=>text.includes(k))) return '📦 Delivery Scam Phishing — fake parcel delivery notifications.';
+  if (['irs','tax refund','tax notice','income tax','gst refund'].some(k=>text.includes(k))) return '🏛️ Government Impersonation — fake IRS/tax authority phishing.';
+  if (['your account has been','suspended','login','verify your account','security alert','unusual activity'].some(k=>text.includes(k))) return '🔐 Account Takeover Phishing — attempting to steal login credentials.';
+  if (['won','prize','winner','lottery','claim','reward','gift'].some(k=>text.includes(k))) return '🎁 Lottery / Prize Scam — fake rewards designed to collect personal info.';
+  if (['inheritance','million','funds','attorney','transfer'].some(k=>text.includes(k))) return '👑 Advance Fee Fraud (419 Scam) — fake inheritance or fund transfer request.';
+  if (credFound.length > 0) return '🎭 Credential Harvesting — designed to steal usernames, passwords, or PII.';
+  if (urgency.length >= 2) return '⏱️ Urgency-Based Social Engineering — psychological pressure tactics.';
+  return '🎣 Generic Phishing — suspicious email with multiple heuristic red flags.';
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+}
+
+function clearPhishing() {
+  document.getElementById('ph-sender').value='';
+  document.getElementById('ph-subject').value='';
+  document.getElementById('ph-body').value='';
+  document.getElementById('ph-results').style.display='none';
+  document.getElementById('ph-download-btn').style.display='none';
+  phishingReportData=null;
+  phClearFile();
+}
+
+function downloadPhishingReport() {
+  if(!phishingReportData) return;
+  document.getElementById('dl-modal-overlay').classList.add('open');
+}
+function closeDlModal(){
+  document.getElementById('dl-modal-overlay').classList.remove('open');
+}
+
+function doDownload(fmt){
+  closeDlModal();
+  if(!phishingReportData) return;
+  const d = phishingReportData;
+  const now = new Date();
+  const ts = now.toLocaleString();
+  const dateStr = now.toISOString().slice(0,10);
+  const clean = s => (s||'').replace(/<[^>]+>/g,'');
+
+  /* ── shared data strings ── */
+  const threatsClean  = d.threats.map((t,i)=>`${i+1}. ${clean(t)}`).join('\n') || 'None';
+  const whyClean      = d.whyReasons.map((r,i)=>`${i+1}. ${clean(r)}`).join('\n') || 'N/A';
+  const recsClean     = d.recommendations.map((r,i)=>`${i+1}. ${r}`).join('\n');
+  const urlsClean     = d.urls.map(u=>'  • '+u).join('\n') || '  None';
+  const phishClean    = clean(d.phishingType);
+
+  if(fmt === 'txt'){
+    const body = `CYBERSAFE GUARDIAN — PHISHING EMAIL ANALYSIS REPORT
+=====================================================
+Generated : ${ts}
+Analyst   : CyberSafe Guardian Heuristic Engine v2.0
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RISK ASSESSMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Risk Score  : ${d.score}%
+Risk Level  : ${d.riskLabel}
+Threats Hit : ${d.threats.length}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EXTRACTED INFORMATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sender      : ${d.senderEmail || 'Not provided'}
+Subject     : ${d.subject || 'Not provided'}
+Emails      : ${d.allEmails.join(', ') || 'None'}
+Phones      : ${d.allPhones?d.allPhones.join(', '):'None'}
+URLs (${d.urls.length}) :
+${urlsClean}
+Attachments : ${d.allAttachMentions.join(', ') || 'None mentioned'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHISHING CATEGORY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${phishClean}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETECTED THREATS (${d.threats.length})
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${threatsClean}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SUSPICIOUS KEYWORDS (${d.foundKeywords.length})
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${d.foundKeywords.join(', ') || 'None'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+WHY SUSPICIOUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${whyClean}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EMAIL STATISTICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Word Count : ${d.wordCount}
+URLs Found : ${d.linkCount}
+Keywords   : ${d.foundKeywords.length}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RECOMMENDATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${recsClean}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DISCLAIMER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+This report is generated by a heuristic analysis engine.
+False positives are possible. Always use professional
+security tools for critical decisions.
+
+© CyberSafe Guardian — darshanparmar5812@gmail.com`.trim();
+    triggerDownload(body, `PhishingReport_${dateStr}.txt`, 'text/plain');
+  }
+
+  else if(fmt === 'json'){
+    const obj = {
+      meta:{ generated: ts, tool:'CyberSafe Guardian Heuristic Engine v2.0' },
+      assessment:{ riskScore: d.score, riskLevel: d.riskLabel, threatCount: d.threats.length },
+      extractedInfo:{ sender: d.senderEmail||'', subject: d.subject||'', emails: d.allEmails, phones: d.allPhones||[], urls: d.urls, attachmentsMentioned: d.allAttachMentions },
+      phishingCategory: phishClean,
+      detectedThreats: d.threats.map(clean),
+      suspiciousKeywords: d.foundKeywords,
+      whySuspicious: d.whyReasons.map(clean),
+      statistics:{ wordCount: d.wordCount, urlCount: d.linkCount, keywordsHit: d.foundKeywords.length },
+      recommendations: d.recommendations,
+      disclaimer:'Generated by heuristic engine. False positives are possible.'
+    };
+    triggerDownload(JSON.stringify(obj, null, 2), `PhishingReport_${dateStr}.json`, 'application/json');
+  }
+
+  else if(fmt === 'csv'){
+    const rows = [
+      ['Field','Value'],
+      ['Generated', ts],
+      ['Risk Score', d.score+'%'],
+      ['Risk Level', d.riskLabel],
+      ['Threat Count', d.threats.length],
+      ['Sender', d.senderEmail||''],
+      ['Subject', d.subject||''],
+      ['Emails Found', d.allEmails.join(' | ')],
+      ['Phones Found', (d.allPhones||[]).join(' | ')],
+      ['URLs Found', d.urls.join(' | ')],
+      ['Attachments Mentioned', d.allAttachMentions.join(' | ')],
+      ['Phishing Category', phishClean],
+      ['Suspicious Keywords', d.foundKeywords.join(' | ')],
+      ['Word Count', d.wordCount],
+      ['URL Count', d.linkCount],
+      ['Keywords Hit', d.foundKeywords.length],
+      ['',''],
+      ['#','Detected Threat'],
+      ...d.threats.map((t,i)=>[i+1, clean(t)]),
+      ['',''],
+      ['#','Why Suspicious'],
+      ...d.whyReasons.map((r,i)=>[i+1, clean(r)]),
+      ['',''],
+      ['#','Recommendation'],
+      ...d.recommendations.map((r,i)=>[i+1, r]),
+    ];
+    const csv = rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+    triggerDownload(csv, `PhishingReport_${dateStr}.csv`, 'text/csv');
+  }
+
+  else if(fmt === 'md'){
+    const riskEmoji = d.score===0?'✅':d.score<25?'🟦':d.score<55?'🟡':'🔴';
+    const md = `# 🎣 Phishing Email Analysis Report
+> **Generated:** ${ts}  
+> **Tool:** CyberSafe Guardian Heuristic Engine v2.0
+
+---
+
+## ${riskEmoji} Risk Assessment
+
+| Field | Value |
+|-------|-------|
+| Risk Score | **${d.score}%** |
+| Risk Level | **${d.riskLabel}** |
+| Threats Detected | **${d.threats.length}** |
+
+---
+
+## 🔎 Extracted Information
+
+| Field | Value |
+|-------|-------|
+| Sender | ${d.senderEmail||'Not provided'} |
+| Subject | ${d.subject||'Not provided'} |
+| Emails Found | ${d.allEmails.join(', ')||'None'} |
+| Phones Found | ${(d.allPhones||[]).join(', ')||'None'} |
+| Attachments Mentioned | ${d.allAttachMentions.join(', ')||'None'} |
+
+### URLs Found (${d.urls.length})
+${d.urls.map(u=>'- `'+u+'`').join('\n')||'None'}
+
+---
+
+## 🏷️ Phishing Category
+${phishClean}
+
+---
+
+## ⚠️ Detected Threats (${d.threats.length})
+${d.threats.map((t,i)=>`${i+1}. ${clean(t)}`).join('\n')||'None'}
+
+---
+
+## 🔑 Suspicious Keywords (${d.foundKeywords.length})
+${d.foundKeywords.map(k=>'`'+k+'`').join('  ')||'None'}
+
+---
+
+## 🧠 Why Suspicious
+${d.whyReasons.map((r,i)=>`${i+1}. ${clean(r)}`).join('\n')||'N/A'}
+
+---
+
+## 📊 Email Statistics
+
+| Metric | Value |
+|--------|-------|
+| Word Count | ${d.wordCount} |
+| URLs Found | ${d.linkCount} |
+| Keywords Hit | ${d.foundKeywords.length} |
+
+---
+
+## 🛡️ Recommendations
+${d.recommendations.map((r,i)=>`${i+1}. ${r}`).join('\n')}
+
+---
+
+> ⚠️ *This report is generated by a heuristic analysis engine. False positives are possible.*  
+> © CyberSafe Guardian — darshanparmar5812@gmail.com`.trim();
+    triggerDownload(md, `PhishingReport_${dateStr}.md`, 'text/markdown');
+  }
+
+  else if(fmt === 'html'){
+    const riskColor = d.score===0?'#00ff88':d.score<25?'#00ccff':d.score<55?'#ffaa00':'#ff3344';
+    const riskBg    = d.score===0?'rgba(0,255,136,0.1)':d.score<25?'rgba(0,204,255,0.1)':d.score<55?'rgba(255,170,0,0.1)':'rgba(255,51,68,0.1)';
+    const row=(k,v)=>`<tr><td style="padding:7px 14px;color:#7a9bb5;border-bottom:1px solid rgba(0,245,255,0.07);white-space:nowrap;">${k}</td><td style="padding:7px 14px;color:#c8e0f0;border-bottom:1px solid rgba(0,245,255,0.07);word-break:break-all;">${v||'—'}</td></tr>`;
+    const li=arr=>arr.length?arr.map((x,i)=>`<li style="padding:5px 0;border-bottom:1px solid rgba(0,245,255,0.05);color:#8ab0cc;">${i+1}. ${clean(x)}</li>`).join(''):'<li style="color:#3a6a8a;">None</li>';
+    const html=`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Phishing Report — ${dateStr}</title>
+<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Inter,sans-serif;background:#020810;color:#c8e0f0;padding:2rem;}
+h1{font-family:monospace;font-size:1.6rem;color:#00f5ff;margin-bottom:.3rem;}
+h2{font-family:monospace;font-size:.9rem;color:#00f5ff;letter-spacing:1.5px;margin:1.6rem 0 .7rem;padding-bottom:.4rem;border-bottom:1px solid rgba(0,245,255,0.2);}
+.card{background:rgba(0,20,40,.85);border:1px solid rgba(0,245,255,.18);border-radius:14px;padding:1.4rem;margin-bottom:1.2rem;}
+.badge{display:inline-block;padding:6px 22px;border-radius:20px;font-family:monospace;font-size:1.1rem;font-weight:700;letter-spacing:2px;background:${riskBg};color:${riskColor};border:1px solid ${riskColor}40;}
+table{width:100%;border-collapse:collapse;}
+ul{list-style:none;padding-left:.5rem;}
+.kw{display:inline-block;background:rgba(255,51,68,.15);color:#ff8899;border-radius:4px;padding:2px 8px;margin:2px;font-size:.8rem;font-family:monospace;}
+.url{display:block;color:#ffcc44;font-size:.8rem;font-family:monospace;padding:2px 0;word-break:break-all;}
+footer{margin-top:2rem;font-size:.75rem;color:#2a4a6a;border-top:1px solid rgba(0,245,255,.08);padding-top:1rem;}
+
+  /* ── CONTACT PAGE MOBILE FIX ─────────────────────── */
+  @media(max-width:600px){
+    #contact .contact-content {
+      padding: 1rem !important;
+      width: 100% !important;
+      box-sizing: border-box;
+    }
+    #contact .contact-form {
+      padding: 1.2rem 1rem !important;
+      box-sizing: border-box;
+    }
+    #contact .contact-form a[href^="mailto"] {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      padding: 0.9rem 1rem !important;
+    }
+    #contact .contact-form a[href^="mailto"] > div:last-child div:last-child {
+      font-size: 0.78rem !important;
+      word-break: break-all !important;
+      overflow-wrap: break-word !important;
+    }
+    #contact .cyber-input {
+      font-size: 16px !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    #contact .page-header h1 { font-size: 1.4rem !important; }
+    .contact-content > div { margin-bottom: 1rem !important; }
+  }
+</style></head><body>
+<h1>🎣 Phishing Email Analysis Report</h1>
+<p style="font-size:.8rem;color:#3a6a8a;font-family:monospace;margin-bottom:1.5rem;">Generated: ${ts} &nbsp;|&nbsp; CyberSafe Guardian Heuristic Engine v2.0</p>
+<div class="card"><h2>RISK ASSESSMENT</h2>
+<span class="badge">${d.riskLabel}</span>
+<table style="margin-top:1rem;">${row('Risk Score','<b style="color:'+riskColor+';">'+d.score+'%</b>')}${row('Threats Detected',d.threats.length)}</table></div>
+<div class="card"><h2>EXTRACTED INFORMATION</h2>
+<table>${row('Sender',d.senderEmail)}${row('Subject',d.subject)}${row('Emails Found',d.allEmails.join(', ')||'None')}${row('Phones Found',(d.allPhones||[]).join(', ')||'None')}${row('Attachments',d.allAttachMentions.join(', ')||'None')}</table>
+${d.urls.length?'<p style="font-size:.78rem;color:#4a7a9a;margin:.9rem 0 .3rem;font-family:monospace;">URLS ('+d.urls.length+')</p>'+d.urls.map(u=>'<span class="url">→ '+u+'</span>').join(''):''}
+</div>
+<div class="card"><h2>PHISHING CATEGORY</h2><p>${phishClean}</p></div>
+<div class="card"><h2>DETECTED THREATS (${d.threats.length})</h2><ul>${li(d.threats)}</ul></div>
+<div class="card"><h2>SUSPICIOUS KEYWORDS (${d.foundKeywords.length})</h2>${d.foundKeywords.map(k=>'<span class="kw">'+k+'</span>').join('')||'<span style="color:#3a6a8a;">None</span>'}</div>
+<div class="card"><h2>WHY SUSPICIOUS</h2><ul>${li(d.whyReasons)}</ul></div>
+<div class="card"><h2>EMAIL STATISTICS</h2>
+<table>${row('Word Count',d.wordCount)}${row('URLs Found',d.linkCount)}${row('Keywords Hit',d.foundKeywords.length)}</table></div>
+<div class="card"><h2>RECOMMENDATIONS</h2><ul>${li(d.recommendations)}</ul></div>
+<footer>⚠️ This report is generated by a heuristic analysis engine. False positives are possible.<br>© CyberSafe Guardian — darshanparmar5812@gmail.com</footer>
+</body></html>`;
+    triggerDownload(html, `PhishingReport_${dateStr}.html`, 'text/html');
+  }
+}
+
+function triggerDownload(content, filename, mime){
+  const blob = new Blob([content], {type: mime});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
+
+/* Init */
+initReveal();
+
+
+
+/* ════════════════════════════════════════════════════════════════
+   CYBERSAFE ASSISTANT — AI-Powered Chatbot (Groq AI)
+   • Uses llama-3.1-8b-instant (API key embedded)
+   • Full conversation memory, streaming-style typing, HTML rendering
+   • Focused on cybersecurity + this site's tools and pages
+════════════════════════════════════════════════════════════════ */
+
+(function () {
+  'use strict';
+
+  /* ══════════════════════════════════════════════════════════
+     🔑 GROQ API KEY — your key is already set below
+     Get a free key at: https://console.groq.com
+  ══════════════════════════════════════════════════════════ */
+  const GROQ_API_KEY = 'PASTE_YOUR_API_KEY_HERE';
+
+  /* ── MODEL & ENDPOINT ──────────────────────────────────── */
+  const GROQ_MODEL = 'llama-3.1-8b-instant';
+  const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+
+  /* ── SYSTEM INSTRUCTION (site-aware cybersecurity expert) ── */
+  const SYSTEM_INSTRUCTION = `You are CyberSafe Assistant — the expert AI helper embedded inside CyberSafe Guardian, a cybersecurity education website built by Darshan Parmar (IT student, parmardarshan7544@gmail.com).
+
+YOUR ROLE:
+• Answer cybersecurity questions accurately, helpfully, and in depth.
+• Guide users through every page and tool on this website.
+• Provide step-by-step emergency guidance for hacked accounts, malware, ransomware, phishing, identity theft, and credit card fraud.
+• When a user describes a symptom or attack, diagnose it and give a concrete action plan.
+• If a question is borderline off-topic but related to digital safety, answer it. Only redirect for completely unrelated topics (sports, cooking, etc.).
+
+COMPLETE SITE KNOWLEDGE:
+🏠 HOME PAGE
+  • Hero: "Your Digital Shield Against Cyber Threats"
+  • Live stats banner: 4.1 Billion password breaches/year · 3.4 Billion phishing emails/day · 560,000 new malware samples/day
+  • Quick Actions: Password Checker · URL Checker · File Checker · Emergency Help
+  • Scrolling security tips banner (2FA, password managers, VPN, backups, etc.)
+
+🔍 ANALYZER PAGE — 3 interactive tools:
+  1. Password Strength Checker — real-time strength meter (Weak/Fair/Good/Strong/Excellent), estimated crack time, requirements checklist
+  2. URL Safety Checker — heuristic scan for phishing indicators (suspicious TLDs, IP addresses, URL shorteners, lookalike domains, excessive subdomains, dangerous keywords)
+  3. File Safety Checker — drag-and-drop or browse, flags dangerous extensions (.exe, .bat, .vbs, .ps1, .jar, .scr, .cmd, .msi, .reg, .pif, .com, etc.), shows risk level
+
+🎣 PHISHING ANALYZER PAGE:
+  • Paste any suspicious email content → instant deep heuristic analysis
+  • Detects: urgency language, spoofed senders, suspicious URLs, credential harvesting attempts, reward/prize scams, financial fraud, malware delivery, BEC (Business Email Compromise)
+  • Outputs: Risk Score (0–100%), risk badge (Low/Medium/High/Critical), threat list, suspicious keywords, extracted URLs, emails, phones, attachments mentioned
+  • Download report as TXT, PDF, or styled HTML
+
+🛠️ TOOLS PAGE — 12 professional cybersecurity tools (3D flip cards):
+  1. Nmap — network discovery & port scanning
+  2. Wireshark — packet capture & network traffic analysis
+  3. Metasploit — penetration testing framework
+  4. Burp Suite — web application security testing
+  5. Kali Linux — dedicated pentesting OS
+  6. John the Ripper — password cracking & auditing
+  7. Aircrack-ng — Wi-Fi security testing
+  8. Nikto — web server vulnerability scanner
+  9. OWASP ZAP — automated web app security scanner
+  10. Hashcat — GPU-accelerated password recovery
+  11. Nessus — enterprise vulnerability scanner
+  12. SQLmap — automated SQL injection detection
+
+🚨 EMERGENCY PAGE — 6 step-by-step incident response guides:
+  1. Gmail Account Hacked
+  2. Instagram Account Hacked
+  3. Ransomware Attack
+  4. Phishing Link Clicked
+  5. Identity Theft
+  6. Credit Card Fraud
+
+📚 RESOURCES PAGE — curated cybersecurity learning links
+
+ℹ️ ABOUT PAGE — project info, tech stack: HTML5, CSS3, JS ES6+, Canvas API, Web Crypto API, Share Tech Mono / Orbitron fonts
+
+📞 CONTACT PAGE — contact form + parmardarshan7544@gmail.com
+
+🇮🇳 INDIA CYBERCRIME:
+  • Helpline: 1930
+  • Portal: cybercrime.gov.in
+  • Report phishing: report@phishing.gov.in
+  • CERT-In: cert-in.org.in
+
+DEEP CYBERSECURITY KNOWLEDGE — answer authoritatively on:
+Phishing (spear, whaling, vishing, smishing, clone), malware (ransomware, spyware, keylogger, adware, rootkit, trojan, worm, cryptominer, fileless malware), social engineering, 2FA/MFA (TOTP, FIDO2, hardware keys), password security & managers, VPN (split tunneling, kill switch, protocols), encryption (AES, RSA, TLS, end-to-end), firewalls (stateful, WAF, NGFW), antivirus & EDR, safe browsing & browser security, data backup (3-2-1 rule), digital privacy (fingerprinting, tracking), hacking techniques (MITM, SQL injection, XSS, CSRF, buffer overflow, privilege escalation), network security (DNS, DHCP, ARP poisoning, Wi-Fi attacks), OWASP Top 10, CVE & NVD, incident response lifecycle, threat intelligence, zero-day vulnerabilities, bug bounty, CTF challenges, cybercrime law in India (IT Act 2000), GDPR basics, and general digital hygiene.
+
+HTML FORMATTING RULES (strictly follow — this is a chat bubble):
+• Use <b>term</b> for bold key terms and section headings
+• Use <br> for line breaks between paragraphs and list items
+• Use • bullet character for lists (not HTML <ul>)
+• Use <code>text</code> for commands, file names, URLs, technical strings
+• Use relevant emojis at the start of sections to improve readability
+• NEVER use markdown syntax like **, ##, *, _, or --- — only HTML tags
+• Keep responses complete but chat-friendly: not too brief, not essay-length
+• Structure longer answers with clear heading sections using <b>
+
+TONE: Friendly, expert, trustworthy — like a knowledgeable senior cybersecurity engineer mentoring a student. Never robotic. Use "you" to address the user.`;
+
+  /* ── CONVERSATION HISTORY (OpenAI format) ───── */
+  // Gemini uses [{role:'user'|'model', parts:[{text:'...'}]}]
+  let conversationHistory = [];
+  const MAX_HISTORY = 30; // keep up to 15 turns (30 parts)
+
+  /* ── STATE ─────────────────────────────────────────────── */
+  const STORAGE_KEY = 'csbot_history_v3';
+  let isOpen   = false;
+  let isTyping = false;
+
+  /* ── DOM REFS ──────────────────────────────────────────── */
+  const win     = () => document.getElementById('csbot-window');
+  const msgs    = () => document.getElementById('csbot-messages');
+  const inp     = () => document.getElementById('csbot-input');
+  const typingEl= () => document.getElementById('csbot-typing');
+  const badge   = () => document.getElementById('csbot-badge');
+
+  /* ── TIMESTAMP ─────────────────────────────────────────── */
+  function getTime() {
+    return new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+  }
+
+  /* ── APPEND MESSAGE ────────────────────────────────────── */
+  function appendMsg(html, role, time) {
+    const el = document.createElement('div');
+    el.className = 'csbot-msg csbot-' + role;
+    const ts = time || getTime();
+    el.innerHTML =
+      '<div class="csbot-bubble">' + html + '</div>' +
+      '<span class="csbot-timestamp">' +
+      (role === 'user' ? '🧑 You' : '🛡️ CyberSafe AI') +
+      ' · ' + ts + '</span>';
+    msgs().insertBefore(el, typingEl());
+    scrollBottom();
+    return el;
+  }
+
+  /* ── SCROLL ────────────────────────────────────────────── */
+  function scrollBottom() {
+    const m = msgs();
+    setTimeout(() => { m.scrollTop = m.scrollHeight; }, 60);
+  }
+
+  /* ── TYPING INDICATOR ──────────────────────────────────── */
+  function showTyping() { typingEl().style.display = 'flex'; scrollBottom(); }
+  function hideTyping() { typingEl().style.display = 'none'; }
+
+  /* ── SAVE / LOAD HISTORY (localStorage) ───────────────── */
+  function saveHistory() {
+    try {
+      const bubbles = msgs().querySelectorAll('.csbot-msg');
+      const data = [];
+      bubbles.forEach(b => {
+        data.push({
+          role: b.classList.contains('csbot-user') ? 'user' : 'bot',
+          html: b.querySelector('.csbot-bubble').innerHTML,
+          time: b.querySelector('.csbot-timestamp').textContent.split('·')[1]?.trim() || ''
+        });
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data.slice(-50)));
+    } catch(e) {}
+  }
+
+  function loadHistory() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+      if (!data || !data.length) return false;
+      data.forEach(d => {
+        const safe = d.html.replace(/<script[\s\S]*?<\/script>/gi, '');
+        appendMsg(safe, d.role, d.time);
+        // Rebuild OpenAI conversation history
+        const plainText = d.html.replace(/<[^>]+>/g, '');
+        if (d.role === 'user') {
+          conversationHistory.push({ role: 'user',      content: plainText });
+        } else {
+          conversationHistory.push({ role: 'assistant', content: plainText });
+        }
+      });
+      return true;
+    } catch(e) { return false; }
+  }
+
+  /* ── CALL GROQ API ──────────────────────────────────── */
+  async function callGeminiAPI(userMessage) {
+    // Add the new user turn
+    conversationHistory.push({ role: 'user', content: userMessage });
+
+    // Trim to prevent context overflow
+    if (conversationHistory.length > MAX_HISTORY) {
+      conversationHistory = conversationHistory.slice(-MAX_HISTORY);
+    }
+
+    const payload = {
+      model: GROQ_MODEL,
+      messages: [
+        { role: 'system', content: SYSTEM_INSTRUCTION },
+        ...conversationHistory
+      ],
+      temperature: 0.7,
+      max_tokens: 1200
+    };
+
+    const response = await fetch(GROQ_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + GROQ_API_KEY
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      const msg = err?.error?.message || 'API error ' + response.status;
+      throw new Error(msg);
+    }
+
+    const data = await response.json();
+
+    // Extract reply text
+    const replyText = data?.choices?.[0]?.message?.content || '';
+
+    if (!replyText) {
+      throw new Error('Empty response from Groq. Please try again.');
+    }
+
+    // Add assistant reply to history
+    conversationHistory.push({ role: 'assistant', content: replyText });
+
+    return replyText;
+  }
+
+  /* ── FORMAT REPLY (markdown → safe HTML) ───────────────── */
+  function formatReply(text) {
+    return text
+      // Remove any accidental triple backtick code blocks → wrap in <code>
+      .replace(/```[\w]*\n?([\s\S]*?)```/g, '<br><code style="display:block;background:rgba(0,245,255,0.06);padding:8px 12px;border-radius:8px;font-size:0.78rem;white-space:pre-wrap;border-left:2px solid #00f5ff;margin:6px 0;">$1</code><br>')
+      // Inline code
+      .replace(/`([^`]+)`/g, '<code style="background:rgba(0,245,255,0.1);padding:1px 5px;border-radius:4px;font-size:0.85em;">$1</code>')
+      // Bold **text** or __text__
+      .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+      .replace(/__(.+?)__/g, '<b>$1</b>')
+      // Italic *text*
+      .replace(/\*([^*\n]+)\*/g, '<i>$1</i>')
+      // ## Headings → bold cyan
+      .replace(/^#{1,3}\s+(.+)$/gm, '<b style="color:#00f5ff;">$1</b>')
+      // Bullet lines starting with - or *
+      .replace(/^[\-\*]\s+(.+)$/gm, '• $1')
+      // Newlines → <br>
+      .replace(/\n/g, '<br>');
+  }
+
+  /* ── TOGGLE OPEN/CLOSE ─────────────────────────────────── */
+  window.csbotToggle = function () {
+    isOpen = !isOpen;
+    if (isOpen) {
+      win().classList.add('csbot-open');
+      badge().style.display = 'none';
+      setTimeout(() => inp().focus(), 300);
+    } else {
+      win().classList.remove('csbot-open');
+    }
+  };
+
+  /* ── SEND MESSAGE ──────────────────────────────────────── */
+  window.csbotSend = async function () {
+    const input = inp();
+    const text  = input.value.trim();
+    if (!text || isTyping) return;
+    input.value = '';
+
+    appendMsg(escapeHtml(text), 'user');
+    saveHistory();
+
+    isTyping = true;
+    showTyping();
+
+    try {
+      const rawReply = await callGeminiAPI(text);
+      hideTyping();
+      isTyping = false;
+      const formatted = formatReply(rawReply);
+      appendMsg(formatted, 'bot');
+      saveHistory();
+    } catch (err) {
+      hideTyping();
+      isTyping = false;
+      const errMsg = err.message || 'Unknown error';
+
+      // Friendly error with troubleshooting tip
+      let hint = '';
+      if (errMsg.includes('API_KEY') || errMsg.includes('key')) {
+        hint = '<br><span style="color:#ffaa00;font-size:0.75rem;">💡 Tip: Check that your Groq API key is correctly set in the code.</span>';
+      } else if (errMsg.includes('quota') || errMsg.includes('429')) {
+        hint = '<br><span style="color:#ffaa00;font-size:0.75rem;">💡 Tip: API quota exceeded. Wait a moment and try again.</span>';
+      } else if (errMsg.includes('network') || errMsg.includes('fetch')) {
+        hint = '<br><span style="color:#ffaa00;font-size:0.75rem;">💡 Tip: Check your internet connection.</span>';
+      }
+
+      appendMsg(
+        '⚠️ <b>Could not reach Groq AI.</b><br><br>' +
+        '<span style="font-size:0.8rem;color:#5a7a95;">Error: ' + escapeHtml(errMsg) + '</span>' + hint +
+        '<br><br>Please try again in a moment.',
+        'bot'
+      );
+      saveHistory();
+    }
+
+    if (!isOpen) {
+      badge().style.display = 'flex';
+    }
+  };
+
+  /* ── HTML ESCAPE (user input only) ────────────────────── */
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /* ── QUICK CHIP HANDLER ────────────────────────────────── */
+  window.csbotAsk = function (question) {
+    inp().value = question;
+    csbotSend();
+  };
+
+  /* ── CLEAR CHAT ────────────────────────────────────────── */
+  window.csbotClear = function () {
+    Array.from(msgs().querySelectorAll('.csbot-msg')).forEach(el => el.remove());
+    conversationHistory = [];
+    try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+    setTimeout(() => {
+      appendMsg(
+        '🧹 Chat cleared!<br><br>' +
+        'Hi again! I\'m your <b>CyberSafe AI Assistant</b> — powered by Groq-AI.<br>' +
+        'Ask me anything about cybersecurity or this website!',
+        'bot'
+      );
+    }, 100);
+  };
+
+  /* ── INIT ──────────────────────────────────────────────── */
+  function csbotInit() {
+    const hasHistory = loadHistory();
+    if (!hasHistory) {
+      appendMsg(
+        '👋 Hi! I\'m <b>CyberSafe AI Assistant</b> — powered by <b style="color:#f55036;">Groq AI (LLaMA 3)</b> 🤖<br><br>' +
+        'I know everything about this site and cybersecurity. I can help you with:<br><br>' +
+        '• 🛠️ <b>Site Tools</b> — Password, URL & File Checker<br>' +
+        '• 🎣 <b>Phishing</b> — Detect & analyze suspicious emails<br>' +
+        '• 🚨 <b>Emergency</b> — Hacked accounts, ransomware, fraud<br>' +
+        '• 🔒 <b>Cybersecurity</b> — Any question, explained clearly<br>' +
+        '• 🇮🇳 <b>India Cybercrime</b> — Helpline 1930, cybercrime.gov.in<br><br>' +
+        'Click a quick question below or just ask me anything!',
+        'bot'
+      );
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', csbotInit);
+  } else {
+    csbotInit();
+  }
+
+})(); // end IIFE
+</script>
+
+<!-- ════════════════════════════════════════════════
+     CYBERSAFE ASSISTANT CHATBOT
+════════════════════════════════════════════════ -->
+
+<!-- Floating trigger button -->
+<button id="csbot-trigger" onclick="csbotToggle()" aria-label="Open CyberSafe Assistant">
+  <span id="csbot-badge"></span>
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.37 5.06L2 22l4.94-1.37C8.42 21.5 10.15 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V8h2v4zm4 4h-2v-2h2v2zm0-4h-2V8h2v4z"/>
+  </svg>
+</button>
+
+<!-- Chat window -->
+<div id="csbot-window" role="dialog" aria-label="CyberSafe Assistant">
+
+  <!-- Header -->
+  <div id="csbot-header">
+    <div class="csbot-header-left">
+      <div class="csbot-avatar">
+        🛡️
+        <span class="csbot-online-dot"></span>
+      </div>
+      <div>
+        <div class="csbot-name">CyberSafe Assistant</div>
+        <div class="csbot-status">● Online — Groq AI Powered</div>
+      </div>
+    </div>
+    <div class="csbot-header-btns">
+      <button class="csbot-hbtn" onclick="csbotClear()" title="Clear chat">🗑</button>
+      <button class="csbot-hbtn" onclick="csbotToggle()" title="Close">✕</button>
+    </div>
+  </div>
+
+  <div id="csbot-suggestions">
+    <span class="csbot-chip" onclick="csbotAsk('What is phishing and how to detect it?')">What is phishing?</span>
+    <span class="csbot-chip" onclick="csbotAsk('How does the Password Checker tool work?')">Password Checker</span>
+    <span class="csbot-chip" onclick="csbotAsk('What tools are available on this site?')">All Tools</span>
+    <span class="csbot-chip" onclick="csbotAsk('My Gmail account was hacked, what do I do?')">Gmail hacked</span>
+    <span class="csbot-chip" onclick="csbotAsk('How to stay safe online? Give me top 10 tips.')">Stay safe online</span>
+    <span class="csbot-chip" onclick="csbotAsk('I clicked a phishing link, what should I do now?')">Clicked phishing link</span>
+    <span class="csbot-chip" onclick="csbotAsk('What is ransomware and how to protect against it?')">Ransomware</span>
+    <span class="csbot-chip" onclick="csbotAsk('How to report cybercrime in India?')">Report cybercrime 🇮🇳</span>
+  </div>
+
+  <!-- Messages -->
+  <div id="csbot-messages">
+    <!-- Typing indicator lives here too -->
+    <div id="csbot-typing">
+      <span class="csbot-dot"></span>
+      <span class="csbot-dot"></span>
+      <span class="csbot-dot"></span>
+    </div>
+  </div>
+
+  <!-- Input row -->
+  <div id="csbot-input-row">
+    <input id="csbot-input" type="text" placeholder="Ask about cybersecurity…"
+           onkeydown="if(event.key==='Enter')csbotSend()" maxlength="300" autocomplete="off"/>
+    <button id="csbot-send" onclick="csbotSend()" aria-label="Send">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"7f7b0fd8732c4326aae4b9d58d5c514a","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
+
