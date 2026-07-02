@@ -20,6 +20,7 @@ CyberSafe Guardian is a modern cybersecurity awareness and security toolkit desi
 * Interactive Animations and Cyber-Themed Design
 * Contact Form with Data Storage
 * Security Awareness Content and Best Practices
+* mobile and desktop responsive
 
 ## 🛠️ Services
 
